@@ -15,7 +15,7 @@ public class Genetic<T> {
 	private final List<T> population = new ArrayList<>();
 	
 	private double killFactor = 0.2;
-	private int populationCount = 100;
+	private int populationCount = 1000;
 	private int stepCount = 10000;
 	private int evaluationCount = 3;
 	private int printCount = 3;

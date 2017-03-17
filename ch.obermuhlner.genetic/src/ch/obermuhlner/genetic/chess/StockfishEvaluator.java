@@ -15,38 +15,65 @@ public class StockfishEvaluator implements GenomeEvaluator<StartPosition> {
 	private final static Pattern EVALUATION_RESULT_PATTERN = Pattern.compile("Total Evaluation: (-?[0-9]+\\.[0-9]*)");
 	
 	private final String chessEngine = "C:/Apps/stockfish-8-win/Windows/stockfish_8_x64";
-	
-	@Override
-	public double evaluate(StartPosition first, StartPosition second) {
-		Board board = StartPosition.toBoard(first, second);
 
-		double result = 0;
-		
+	private BufferedWriter processInput;
+
+	private BufferedReader processOutput;
+
+	private BufferedReader processError;
+
+	public void start() {
 		try {
 			ProcessBuilder processBuilder = new ProcessBuilder(chessEngine);
 			Process process = processBuilder.start();
-			
-			BufferedWriter processInput = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()));
-			BufferedReader processOutput = new BufferedReader(new InputStreamReader(process.getInputStream()));
-			
-//			processInput.write("uci\n");
-			
-			processInput.write("position fen ");
-			processInput.write(board.toFenString());
-			processInput.write(" w -- - 0 1");
-			processInput.write("\n");
-			
-			processInput.write("eval\n");
-			
-			processInput.flush();
-			
-			result = readUntilResult(processOutput);
+			processInput = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()));
+			processOutput = new BufferedReader(new InputStreamReader(process.getInputStream()));
+			processError = new BufferedReader(new InputStreamReader(process.getErrorStream()));
 
+//			processInput.write("uci\n");
+//			processInput.flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void stop() {
+		try {
 			processInput.write("quit\n");
 			processInput.flush();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	@Override
+	public double evaluate(StartPosition first, StartPosition second) {
+		while(true) {
+			try {
+				return evaluateInternal(first, second);
+			} catch (IOException e) {
+				//e.printStackTrace();
+				start();
+			}
+		}
+	}
+	
+	private double evaluateInternal(StartPosition white, StartPosition black) throws IOException {
+		Board board = StartPosition.toBoard(white, black);
+
+		double result = 0;
+		
+		processInput.write("position fen ");
+		processInput.write(board.toFenString());
+		processInput.write(" w -- - 0 1");
+		processInput.write("\n");
+		processInput.flush();
+		
+		processInput.write("eval\n");
+		processInput.flush();
+		
+		result = readUntilResult(processOutput);
+		//System.out.println(board.toFenString() + " : " + result);
 		
 		return result;
 	}
@@ -61,6 +88,12 @@ public class StockfishEvaluator implements GenomeEvaluator<StartPosition> {
 			}
 			
 			line = processOutput.readLine();
+		}
+		
+		line = processError.readLine();
+		while(line != null) {
+			System.out.println("ERR: " + line);
+			line = processError.readLine();
 		}
 		
 		return 0;
