@@ -46,7 +46,7 @@ public class StartPosition extends Board {
 
 		for (int y = 0; y < white.getHeight(); y++) {
 			for (int x = 0; x < white.getWidth(); x++) {
-				board.setField(board.getWidth() - x - 1, board.getHeight() - y - 1, Board.toWhite(white.getField(x, y)));
+				board.setField(x, board.getHeight() - y - 1, Board.toWhite(white.getField(x, y)));
 			}
 		}
 		
