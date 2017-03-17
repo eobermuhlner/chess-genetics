@@ -20,15 +20,12 @@ public class StockfishEvaluator implements GenomeEvaluator<StartPosition> {
 
 	private BufferedReader processOutput;
 
-	private BufferedReader processError;
-
 	public void start() {
 		try {
 			ProcessBuilder processBuilder = new ProcessBuilder(chessEngine);
 			Process process = processBuilder.start();
 			processInput = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()));
 			processOutput = new BufferedReader(new InputStreamReader(process.getInputStream()));
-			processError = new BufferedReader(new InputStreamReader(process.getErrorStream()));
 
 //			processInput.write("uci\n");
 //			processInput.flush();
@@ -48,19 +45,22 @@ public class StockfishEvaluator implements GenomeEvaluator<StartPosition> {
 	
 	@Override
 	public double evaluate(StartPosition first, StartPosition second) {
+		if (processInput == null) {
+			start();
+		}
+		
 		while(true) {
 			try {
 				return evaluateInternal(first, second);
 			} catch (IOException e) {
-				//e.printStackTrace();
-				start();
+				throw new RuntimeException(e);
 			}
 		}
 	}
 	
 	private double evaluateInternal(StartPosition white, StartPosition black) throws IOException {
 		Board board = StartPosition.toBoard(white, black);
-
+		
 		double result = 0;
 		
 		processInput.write("position fen ");
@@ -88,12 +88,6 @@ public class StockfishEvaluator implements GenomeEvaluator<StartPosition> {
 			}
 			
 			line = processOutput.readLine();
-		}
-		
-		line = processError.readLine();
-		while(line != null) {
-			System.out.println("ERR: " + line);
-			line = processError.readLine();
 		}
 		
 		return 0;
