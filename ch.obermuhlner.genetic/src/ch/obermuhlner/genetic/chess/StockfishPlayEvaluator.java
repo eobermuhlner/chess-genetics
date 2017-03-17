@@ -10,7 +10,7 @@ import java.util.regex.Pattern;
 
 import ch.obermuhlner.genetic.GenomeEvaluator;
 
-public class StockfishEvaluator implements GenomeEvaluator<StartPosition> {
+public class StockfishPlayEvaluator implements GenomeEvaluator<StartPosition> {
 
 	private final static Pattern EVALUATION_RESULT_PATTERN = Pattern.compile("Total Evaluation: (-?[0-9]+\\.[0-9]*)");
 	
