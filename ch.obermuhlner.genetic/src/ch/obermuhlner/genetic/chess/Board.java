@@ -71,8 +71,8 @@ public class Board {
 	public String toFenString() {
 		StringBuilder builder = new StringBuilder();
 		
-		int emptyCount = 0;
 		for (int y = 0; y < height; y++) {
+			int emptyCount = 0;
 			for (int x = 0; x < width; x++) {
 				char figure = getField(x, y);
 				if (figure == Board.EMPTY) {
