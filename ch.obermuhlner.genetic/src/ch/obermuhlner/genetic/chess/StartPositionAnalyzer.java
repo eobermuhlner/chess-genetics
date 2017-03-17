@@ -15,6 +15,7 @@ public class StartPositionAnalyzer {
 //		GenomeEvaluator<StartPosition> evaluator = new BottomLeftEvaluator();
 //		GenomeEvaluator<StartPosition> evaluator = new StockfishSimpleEvaluator();
 		GenomeEvaluator<StartPosition> evaluator = new StockfishPlayEvaluator();
+//		GenomeEvaluator<StartPosition> evaluator = new CompositeEvaluator<>(Arrays.asList(new StockfishSimpleEvaluator(), new StockfishPlayEvaluator()));
 
 		Genetic<StartPosition> genetic = new Genetic<StartPosition>(factory, evaluator, mutator);
 		genetic.run();
