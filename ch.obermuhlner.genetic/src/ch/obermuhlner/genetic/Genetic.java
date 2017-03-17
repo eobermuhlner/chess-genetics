@@ -15,9 +15,9 @@ public class Genetic<T> {
 	private final List<T> population = new ArrayList<>();
 	
 	private double killFactor = 0.2;
-	private int populationCount = 10000;
+	private int populationCount = 100;
 	private int stepCount = 10000;
-	private int evaluationCount = 10;
+	private int evaluationCount = 3;
 	private int printCount = 3;
 	
 	public Genetic(GenomeFactory<T> factory, GenomeEvaluator<T> evaluator, GenomeMutator<T> mutator) {
@@ -73,7 +73,7 @@ public class Genetic<T> {
 				
 				double evaluation = evaluator.evaluate(genom1, genom2);
 				accumulatedEvaluation[genomIndex1] += evaluation;
-				accumulatedEvaluation[genomIndex2] -= evaluation;
+				//accumulatedEvaluation[genomIndex2] -= evaluation;
 			}
 		}
 		return accumulatedEvaluation;
@@ -83,7 +83,7 @@ public class Genetic<T> {
 		List<EvaluatedGenome<T>> evaluatedGenomes = new ArrayList<>();
 		
 		for (int i = 0; i < accumulatedEvaluation.length; i++) {
-			evaluatedGenomes.add(new EvaluatedGenome(population.get(i), accumulatedEvaluation[i]));
+			evaluatedGenomes.add(new EvaluatedGenome<T>(population.get(i), accumulatedEvaluation[i]));
 		}
 		
 		evaluatedGenomes.sort(null);
