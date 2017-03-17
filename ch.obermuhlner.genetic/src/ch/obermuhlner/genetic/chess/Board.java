@@ -52,7 +52,7 @@ public class Board {
 
 	@Override
 	public String toString() {
-		return toSimpleString();
+		return toFenString();
 	}
 
 	public String toSimpleString() {
@@ -96,6 +96,10 @@ public class Board {
 		}
 		
 		return builder.toString();
+	}
+	
+	public String toViewerUrl() {
+		return "https://lichess.org/editor/" + toFenString();
 	}
 
 	public static char toWhite(char figure) {
