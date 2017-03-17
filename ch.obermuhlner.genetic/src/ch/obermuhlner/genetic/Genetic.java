@@ -14,8 +14,9 @@ public class Genetic<T> {
 	
 	private final List<T> population = new ArrayList<>();
 	
-	private double killFactor = 0.2;
-	private int populationCount = 1000;
+	private double growBestFactor = 0.1;
+	private double growRandomFactor = 0.1;
+	private int populationCount = 100;
 	private int stepCount = 10000;
 	private int evaluationCount = 3;
 	private int printCount = 3;
@@ -110,16 +111,22 @@ public class Genetic<T> {
 	}
 
 	private void cullPopulation() {
-		int killCount = (int) (populationCount * killFactor);
+		int growBestCount = (int) (populationCount * growBestFactor);
+		int growRandomCount = (int) (populationCount * growRandomFactor);
+		int killCount = growBestCount + growRandomCount;
 		
 		for (int i = 0; i < killCount; i++) {
 			population.remove(population.size() - 1);
 		}
 		
-		for (int i = 0; i < killCount; i++) {
+		for (int i = 0; i < growRandomCount; i++) {
+			T genome = population.get(random.nextInt(population.size()));
+			population.add(mutator.createMutated(genome));
+		}		
+
+		for (int i = 0; i < growBestCount; i++) {
 			T genome = population.get(i);
-			T offspring = mutator.createMutated(genome);
-			population.add(offspring);
+			population.add(mutator.createMutated(genome));
 		}		
 	}
 
