@@ -1,9 +1,5 @@
 package ch.obermuhlner.genetic.chess;
 
-import java.util.Random;
-
-import javax.swing.text.html.HTMLDocument.HTMLReader.BlockAction;
-
 public class Board {
 
 	public static final char EMPTY = ' ';
@@ -56,6 +52,10 @@ public class Board {
 
 	@Override
 	public String toString() {
+		return toSimpleString();
+	}
+
+	public String toSimpleString() {
 		StringBuilder builder = new StringBuilder();
 		
 		for (int y = 0; y < height; y++) {
@@ -63,6 +63,36 @@ public class Board {
 				builder.append(getField(x, y));
 			}
 			builder.append("/");
+		}
+		
+		return builder.toString();
+	}
+
+	public String toFenString() {
+		StringBuilder builder = new StringBuilder();
+		
+		int emptyCount = 0;
+		for (int y = 0; y < height; y++) {
+			for (int x = 0; x < width; x++) {
+				char figure = getField(x, y);
+				if (figure == Board.EMPTY) {
+					emptyCount++;
+				} else {
+					if (emptyCount > 0) {
+						builder.append(emptyCount);
+						emptyCount = 0;
+					}
+					builder.append(figure);
+				}
+			}
+
+			if (emptyCount > 0) {
+				builder.append(emptyCount);
+			}
+			
+			if (y != height - 1) {
+				builder.append("/");
+			}
 		}
 		
 		return builder.toString();
