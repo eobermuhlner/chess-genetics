@@ -19,7 +19,7 @@ public class StockfishPlayEvaluator implements GenomeEvaluator<StartPosition> {
 	private final static Pattern BESTMOVE_PONDER_RESULT = Pattern.compile("bestmove (.+) ponder (.+)");
 	private final static Pattern BESTMOVE_RESULT = Pattern.compile("bestmove (.+)");
 	private static final int MOVE_COUNT = 20;
-	private static final int THINKING_TIME = 100;
+	private static final int THINKING_TIME = 10;
 	
 	private final String chessEngine = "C:/Apps/stockfish-8-win/Windows/stockfish_8_x64";
 
@@ -43,8 +43,7 @@ public class StockfishPlayEvaluator implements GenomeEvaluator<StartPosition> {
 	
 	public void stop() {
 		try {
-			processInput.write("quit\n");
-			processInput.flush();
+			sendCommand("quit");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -68,39 +67,43 @@ public class StockfishPlayEvaluator implements GenomeEvaluator<StartPosition> {
 	private double evaluateInternal(StartPosition white, StartPosition black) throws IOException {
 		Board board = StartPosition.toBoard(white, black);
 		
-		double result = 0;
-	
-		String position = "position fen " + board.toFenString() + " w -- - 0 ";
-		List<String> moves = new ArrayList<>();
-		
-		sendCommand(position + "1");
-		
-		for (int moveNumber = 0; moveNumber < MOVE_COUNT; moveNumber++) {
-			sendCommand("go movetime " + THINKING_TIME);
+		try {
+			double result = 0;
 			
-			List<String> bestmove = readUntilBestMove(processOutput);
-			System.out.println("BESTMOVE " + bestmove);
+			String position = "position fen " + board.toFenString() + " w -- - 0 ";
+			List<String> moves = new ArrayList<>();
 			
-			if (bestmove == null) {
-				break;
+			sendCommand(position + "1");
+			
+			for (int moveNumber = 0; moveNumber < MOVE_COUNT; moveNumber++) {
+				sendCommand("go movetime " + THINKING_TIME);
+				
+				List<String> bestmove = readUntilBestMove(processOutput);
+				
+				if (bestmove == null) {
+					break;
+				}
+				
+				moves.addAll(bestmove);
+				
+				int halfMoveCount = moves.size() + 1;
+				sendCommand(position + halfMoveCount + " moves " + toMovesList(moves));
 			}
 			
-			moves.addAll(bestmove);
+			// go movetime 100
+			// -> bestmove d7d5 ponder d2d4
+			// ponderhit
 			
-			int halfMoveCount = moves.size() + 1;
-			sendCommand(position + halfMoveCount + " moves " + toMovesList(moves));
+			sendCommand("eval");
+			
+			result = readUntilEvaluationResult(processOutput);
+			System.out.println(board.toFenString() + " : " + result);
+			
+			return result;
+		} catch (IOException ex) {
+			System.out.println("ERROR: " + board);
+			throw ex;
 		}
-		
-		// go movetime 100
-		// -> bestmove d7d5 ponder d2d4
-		// ponderhit
-		
-		sendCommand("eval");
-		
-		result = readUntilEvaluationResult(processOutput);
-		//System.out.println(board.toFenString() + " : " + result);
-		
-		return result;
 	}
 	
 	private String toMovesList(List<String> moves) {
@@ -117,7 +120,7 @@ public class StockfishPlayEvaluator implements GenomeEvaluator<StartPosition> {
 	}
 
 	private void sendCommand(String command) throws IOException {
-		System.out.println("COMMAND " + command);
+		//System.out.println("COMMAND " + command);
 		
 		processInput.write(command);
 		processInput.write("\n");
@@ -127,7 +130,7 @@ public class StockfishPlayEvaluator implements GenomeEvaluator<StartPosition> {
 	private List<String> readUntilBestMove(BufferedReader processOutput) throws IOException {
 		String line = processOutput.readLine();
 		while(line != null) {
-			System.out.println("LINE " + line);
+			//System.out.println("LINE " + line);
 
 			Matcher matcher = BESTMOVE_PONDER_RESULT.matcher(line);
 			if (matcher.find()) {
@@ -148,7 +151,7 @@ public class StockfishPlayEvaluator implements GenomeEvaluator<StartPosition> {
 	private double readUntilEvaluationResult(BufferedReader processOutput) throws IOException {
 		String line = processOutput.readLine();
 		while(line != null) {
-			System.out.println("LINE " + line);
+			//System.out.println("LINE " + line);
 			Matcher matcher = EVALUATION_RESULT.matcher(line);
 			if (matcher.find()) {
 				String found = matcher.group(1);
