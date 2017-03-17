@@ -43,11 +43,19 @@ public class Board {
 	}
 	
 	public char getField(int x, int y) {
-		return fields[x + y * width];
+		return getField(x + y * width);
 	}
-	
+
+	public char getField(int index) {
+		return fields[index];
+	}
+
 	public void setField(int x, int y, char figure) {
-		fields[x + y * width] = figure;
+		setField(x + y * width, figure);
+	}
+
+	public void setField(int index, char figure) {
+		fields[index] = figure;
 	}
 
 	@Override
