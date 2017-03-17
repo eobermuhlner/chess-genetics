@@ -29,9 +29,9 @@ public class StartPosition extends Board {
 	}
 
 	public int randomY(Random random, char figure) {
-		if (figure == Board.BLACK_PAWN || figure == Board.WHITE_PAWN) {
-			return random.nextInt(getHeight() - 1) + 1;
-		}
+//		if (figure == Board.BLACK_PAWN || figure == Board.WHITE_PAWN) {
+//			return random.nextInt(getHeight() - 1) + 1;
+//		}
 		return random.nextInt(getHeight());
 	}
 
