@@ -1,0 +1,11 @@
+## Using stockfish eval
+	Evaluation function: stockfish eval
+	private double growBestFactor = 0.1;
+	private double growRandomFactor = 0.1;
+	private int populationCount = 1000;
+	private int evaluationCount = 10;
+
+1k2n3/1p3qr1/pbp1nbr1/1ppppp2 3.359375000000001
+2k5/1p1p1q2/pbpnnbrr/1p1ppp2 2.2211111111111115
+1k1q4/1p2b1rr/p1pnn3/1ppppp1b 1.6595999999999997
+1k6/qp4rr/pbpnnb2/1ppppp2 2.386666666666667
