@@ -8,6 +8,7 @@ import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -19,7 +20,8 @@ public class StockfishPlayEvaluator implements GenomeEvaluator<StartPosition> {
 	private final static Pattern BESTMOVE_PONDER_RESULT = Pattern.compile("bestmove (.+) ponder (.+)");
 	private final static Pattern BESTMOVE_RESULT = Pattern.compile("bestmove (.+)");
 	private static final int MOVE_COUNT = 20;
-	private static final int THINKING_TIME = 10;
+	private static final int THINKING_TIME = 5;
+	private static final boolean PRINT_DEBUG = false;
 	
 	private final String chessEngine = "C:/Apps/stockfish-8-win/Windows/stockfish_8_x64";
 
@@ -34,8 +36,7 @@ public class StockfishPlayEvaluator implements GenomeEvaluator<StartPosition> {
 			processInput = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()));
 			processOutput = new BufferedReader(new InputStreamReader(process.getInputStream()));
 
-//			processInput.write("uci\n");
-//			processInput.flush();
+			sendCommand("uci");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -51,37 +52,29 @@ public class StockfishPlayEvaluator implements GenomeEvaluator<StartPosition> {
 	
 	@Override
 	public double evaluate(StartPosition first, StartPosition second) {
-		if (processInput == null) {
-			start();
-		}
-		
-		while(true) {
-			try {
-				return evaluateInternal(first, second);
-			} catch (IOException e) {
-				throw new RuntimeException(e);
-			}
-		}
+		return evaluatePlay(first, second, MOVE_COUNT, THINKING_TIME);
 	}
 	
-	private double evaluateInternal(StartPosition white, StartPosition black) throws IOException {
-		Board board = StartPosition.toBoard(white, black);
-		
-		try {
+	public double evaluatePlay(StartPosition white, StartPosition black, int moveCount, int thinkingTime) {
+		return execute(() -> {
+			Board board = StartPosition.toBoard(white, black);
+			
 			double result = 0;
+		
+			sendCommand("ucinewgame");
 			
 			String position = "position fen " + board.toFenString() + " w -- - 0 ";
 			List<String> moves = new ArrayList<>();
 			
 			sendCommand(position + "1");
 			
-			for (int moveNumber = 0; moveNumber < MOVE_COUNT; moveNumber++) {
-				sendCommand("go movetime " + THINKING_TIME);
+			for (int moveNumber = 0; moveNumber < moveCount; moveNumber++) {
+				sendCommand("go movetime " + thinkingTime);
 				
 				List<String> bestmove = readUntilBestMove(processOutput);
 				
 				if (bestmove == null) {
-					break;
+					return moves.size() % 2 == 0 ? 10.0 : -10.0;
 				}
 				
 				moves.addAll(bestmove);
@@ -90,20 +83,13 @@ public class StockfishPlayEvaluator implements GenomeEvaluator<StartPosition> {
 				sendCommand(position + halfMoveCount + " moves " + toMovesList(moves));
 			}
 			
-			// go movetime 100
-			// -> bestmove d7d5 ponder d2d4
-			// ponderhit
-			
 			sendCommand("eval");
 			
 			result = readUntilEvaluationResult(processOutput);
-			System.out.println(board.toFenString() + " : " + result);
+//			System.out.println(board.toFenString() + " : " + result);
 			
 			return result;
-		} catch (IOException ex) {
-			System.out.println("ERROR: " + board);
-			throw ex;
-		}
+		});
 	}
 	
 	private String toMovesList(List<String> moves) {
@@ -120,7 +106,9 @@ public class StockfishPlayEvaluator implements GenomeEvaluator<StartPosition> {
 	}
 
 	private void sendCommand(String command) throws IOException {
-		//System.out.println("COMMAND " + command);
+		if (PRINT_DEBUG) {
+			System.out.println("COMMAND " + command);
+		}
 		
 		processInput.write(command);
 		processInput.write("\n");
@@ -130,8 +118,14 @@ public class StockfishPlayEvaluator implements GenomeEvaluator<StartPosition> {
 	private List<String> readUntilBestMove(BufferedReader processOutput) throws IOException {
 		String line = processOutput.readLine();
 		while(line != null) {
-			//System.out.println("LINE " + line);
+			if (PRINT_DEBUG) {
+				System.out.println("LINE " + line);
+			}
 
+			if (line.equals("bestmove (none)")) {
+				return null;
+			}
+			
 			Matcher matcher = BESTMOVE_PONDER_RESULT.matcher(line);
 			if (matcher.find()) {
 				return Arrays.asList(matcher.group(1), matcher.group(2));
@@ -151,7 +145,9 @@ public class StockfishPlayEvaluator implements GenomeEvaluator<StartPosition> {
 	private double readUntilEvaluationResult(BufferedReader processOutput) throws IOException {
 		String line = processOutput.readLine();
 		while(line != null) {
-			//System.out.println("LINE " + line);
+			if (PRINT_DEBUG) {
+				System.out.println("LINE " + line);
+			}
 			Matcher matcher = EVALUATION_RESULT.matcher(line);
 			if (matcher.find()) {
 				String found = matcher.group(1);
@@ -164,4 +160,38 @@ public class StockfishPlayEvaluator implements GenomeEvaluator<StartPosition> {
 		return 0;
 	}
 
+	private double execute(StockfishExecution function) {
+		if (processInput == null) {
+			start();
+		}
+		
+		while(true) {
+			try {
+				return function.execute();
+			} catch (IOException e) {
+				start();
+				return 0;
+				//throw new RuntimeException(e);
+			}
+		}
+	}
+	
+	private interface StockfishExecution {
+		double execute() throws IOException;
+	}
+	
+	public static void main(String[] args) {
+		StartPosition black = new StandardStartPositionFactory().createGenom();
+		StockfishPlayEvaluator evaluator = new StockfishPlayEvaluator();
+		double total = 0;
+		int n = 100;
+		for (int i = 0; i < n; i++) {
+			double value = evaluator.evaluatePlay(black, black, 1000, 1);
+			total += value;
+			System.out.println("VALUE " + value);
+		}
+		
+		System.out.println("AVERAGE " + (total / n));
+		System.out.println("EVAL " + evaluator.evaluatePlay(black, black, 1, 0));
+	}
 }
