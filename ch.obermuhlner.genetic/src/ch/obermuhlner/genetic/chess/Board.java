@@ -1,5 +1,9 @@
 package ch.obermuhlner.genetic.chess;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
 public class Board {
 
 	public static final char EMPTY = ' ';
@@ -17,6 +21,35 @@ public class Board {
 	public static final char WHITE_KNIGHT = 'N';
 	public static final char WHITE_ROOK = 'R';
 	public static final char WHITE_PAWN = 'P';
+
+	public static final char[] BLACK_INITIAL_POSITION = {
+			Board.BLACK_ROOK,
+			Board.BLACK_KNIGHT,
+			Board.BLACK_BISHOP,
+			Board.BLACK_QUEEN,
+			Board.BLACK_KING,
+			Board.BLACK_BISHOP,
+			Board.BLACK_KNIGHT,
+			Board.BLACK_ROOK,
+
+			Board.BLACK_PAWN,
+			Board.BLACK_PAWN,
+			Board.BLACK_PAWN,
+			Board.BLACK_PAWN,
+			Board.BLACK_PAWN,
+			Board.BLACK_PAWN,
+			Board.BLACK_PAWN,
+			Board.BLACK_PAWN,
+	};
+	
+	public static final Set<Character> BLACK_FIGURES = new HashSet<>(Arrays.asList(BLACK_KING, BLACK_QUEEN, BLACK_ROOK, BLACK_BISHOP, BLACK_KNIGHT, BLACK_PAWN));
+	public static final Set<Character> WHITE_FIGURES = new HashSet<>(Arrays.asList(WHITE_KING, WHITE_QUEEN, WHITE_ROOK, WHITE_BISHOP, WHITE_KNIGHT, WHITE_PAWN));
+	public static final Set<Character> ALL_FIGURES = new HashSet<>();
+	
+	static {
+		ALL_FIGURES.addAll(BLACK_FIGURES);
+		ALL_FIGURES.addAll(WHITE_FIGURES);
+	}
 
 	private int width;
 	private int height;
@@ -56,6 +89,32 @@ public class Board {
 
 	public void setField(int index, char figure) {
 		fields[index] = figure;
+	}
+	
+	public void clear() {
+		for (int i = 0; i < fields.length; i++) {
+			fields[i] = EMPTY;
+		}
+	}
+	
+	public void setFenString(String fen) {
+		clear();
+		
+		int index = 0;
+		for (int i = 0; i < fen.length(); i++) {
+			char c = fen.charAt(i);
+			if (ALL_FIGURES.contains(c)) {
+				fields[index] = c;
+				index++;
+			} else if (c >= '1' && c <= '9') {
+				int emptyCount = Character.getNumericValue(c);
+				index += emptyCount;
+			} else if (c == '/') {
+				// ignore
+			} else if (c == ' ') {
+				return;
+			}
+		}
 	}
 
 	@Override
