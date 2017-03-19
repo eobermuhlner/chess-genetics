@@ -16,17 +16,26 @@ import ch.obermuhlner.genetic.GenomeEvaluator;
 public class StockfishPlayEvaluator implements GenomeEvaluator<StartPosition> {
 
 	private static final Pattern EVALUATION_RESULT = Pattern.compile("Total Evaluation: (-?[0-9]+\\.[0-9]*)");
-	private static final Pattern BESTMOVE_PONDER_RESULT = Pattern.compile("bestmove (.+) ponder (.+)");
-	private static final Pattern BESTMOVE_RESULT = Pattern.compile("bestmove (.+)");
+	private static final Pattern BESTMOVE_PONDER_RESULT = Pattern.compile("bestmove (\\S+) ponder (\\S+)");
+	private static final Pattern BESTMOVE_RESULT = Pattern.compile("bestmove (\\S+)");
 	private static final boolean PRINT_DEBUG = false;
 	
 	private final String chessEngine = "C:/Apps/stockfish-8-win/Windows/stockfish_8_x64";
 
-	private int moveCount = 10;
-	private int thinkingTime = 5;
+	private final int moveCount;
+	private final int thinkingTime;
 
 	private BufferedWriter processInput;
 	private BufferedReader processOutput;
+
+	public StockfishPlayEvaluator() {
+		this(10, 5);
+	}
+	
+	public StockfishPlayEvaluator(int moveCount, int thinkingTime) {
+		this.moveCount = moveCount;
+		this.thinkingTime = thinkingTime;
+	}
 
 	public void start() {
 		try {
@@ -51,7 +60,7 @@ public class StockfishPlayEvaluator implements GenomeEvaluator<StartPosition> {
 	
 	@Override
 	public double evaluate(StartPosition first, StartPosition second) {
-		return evaluatePlay(first, second, moveCount, thinkingTime);
+		return evaluatePlay(first, second, moveCount, thinkingTime) - evaluatePlay(second, first, moveCount, thinkingTime);
 	}
 	
 	public double evaluatePlay(StartPosition white, StartPosition black, int moveCount, int thinkingTime) {
@@ -134,12 +143,12 @@ public class StockfishPlayEvaluator implements GenomeEvaluator<StartPosition> {
 				return null;
 			}
 			
-			Matcher matcher = BESTMOVE_PONDER_RESULT.matcher(line);
-			if (matcher.find()) {
-				return Arrays.asList(matcher.group(1), matcher.group(2));
-			}
-
-			matcher = BESTMOVE_RESULT.matcher(line);
+//			Matcher matcher = BESTMOVE_PONDER_RESULT.matcher(line);
+//			if (matcher.find()) {
+//				return Arrays.asList(matcher.group(1), matcher.group(2));
+//			}
+//
+			Matcher  matcher = BESTMOVE_RESULT.matcher(line);
 			if (matcher.find()) {
 				return Arrays.asList(matcher.group(1));
 			}
@@ -189,21 +198,43 @@ public class StockfishPlayEvaluator implements GenomeEvaluator<StartPosition> {
 	}
 	
 	public static void main(String[] args) {
-		StartPosition white = new StandardStartPositionFactory().createGenom();
-		//StartPosition black = new StandardStartPositionFactory().createGenom();
-		StartPosition black = new StartPosition("5n2/p1pprb1p/pp1n1pb1/1prk1q2");
-		System.out.println(StartPosition.toBoard(white, black).toFenString());
-		
+		//StartPosition white = new StandardStartPositionFactory().createGenom();
+		StartPosition white = new StartPosition("4n3/kp3qr1/pbp1nbr1/1ppppp2");
+		StartPosition black = new StartPosition("1k2n3/1p3qr1/pbp1nbr1/1ppppp2");
+		System.out.println(StartPosition.toBoard(white, white).toFenString());
+
 		StockfishPlayEvaluator evaluator = new StockfishPlayEvaluator();
+
+		System.out.println("EVAL " + evaluator.evaluatePlay(white, black, 0, 0));
+
+		int n = 100;
 		double total = 0;
-		int n = 10;
+		double min = Double.MAX_VALUE;
+		double max = Double.MIN_VALUE;
+		double values[] = new double[n];
+		
 		for (int i = 0; i < n; i++) {
-			double value = evaluator.evaluatePlay(white, black, 1000, 20);
-			total += value;
+			double value = evaluator.evaluatePlay(white, black, 1000, 10);
 			System.out.println("VALUE " + value);
+
+			values[i] = value;
+			total += value;
+			min = Math.min(min, value);
+			max = Math.max(max, value);
 		}
 		
-		System.out.println("AVERAGE " + (total / n));
-		System.out.println("EVAL " + evaluator.evaluatePlay(white, black, 1, 0));
+		double average = total / n;
+		double totalSquareDeviations = 0;
+		for (int i = 0; i < values.length; i++) {
+			double deviation = average - values[i];
+			totalSquareDeviations += deviation * deviation;
+		}
+		double variance = totalSquareDeviations / n;
+		double stddev = Math.sqrt(variance);
+		
+		System.out.println("MIN " + min);
+		System.out.println("MAX " + max);
+		System.out.println("AVG " + average);
+		System.out.println("stddev " + stddev);
 	}
 }

@@ -2,7 +2,7 @@ package ch.obermuhlner.genetic.chess;
 
 import ch.obermuhlner.genetic.GenomeEvaluator;
 
-public class BottomLeftEvaluator implements GenomeEvaluator<StartPosition> {
+public class BottomRightEvaluator implements GenomeEvaluator<StartPosition> {
 
 	@Override
 	public double evaluate(StartPosition first, StartPosition second) {

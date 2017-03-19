@@ -54,8 +54,15 @@ public class Genetic<T> {
 			}
 		}
 		
-		for (int i = 0; i < stepCount; i++) {
-			runStep(i);
+		for (int step = 0; step < stepCount; step++) {
+			System.out.println("# step " + step);
+			long startMillis = System.currentTimeMillis();
+			
+			runStep(step);
+			
+			long endMillis = System.currentTimeMillis();
+			System.out.println("# in " + (endMillis - startMillis) + " ms");
+			System.out.println();
 		}
 
 		printPopulation(population.size());
@@ -65,7 +72,6 @@ public class Genetic<T> {
 		evaluatePopulation();
 
 		sortPopulation();
-		System.out.println("# step " + step);
 		printPopulation(printCount);
 		
 		cullPopulation();
@@ -75,7 +81,6 @@ public class Genetic<T> {
 		for (int i = 0; i < Math.min(count, population.size()); i++) {
 			System.out.println(population.get(i));
 		}
-		System.out.println();
 	}
 	
 	private void addGenome(T genome) {
