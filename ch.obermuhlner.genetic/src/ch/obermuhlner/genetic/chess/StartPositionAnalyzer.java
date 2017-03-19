@@ -8,6 +8,10 @@ import ch.obermuhlner.genetic.util.AverageGenomeEvaluator;
 
 public class StartPositionAnalyzer {
 
+	private static final StartPosition KNOWN_START_POSITIONS[] = {
+			new StartPosition("6k1/rr1q2p1/2bnnpbp/2ppppp1"),
+			
+	};
 
 	public static void main(String[] args) {
 		//analyzeFrontLeft();
@@ -29,6 +33,8 @@ public class StartPositionAnalyzer {
 		GenomeEvaluator<StartPosition> evaluator = new FrontLeftEvaluator();
 
 		Genetic<StartPosition> genetic = new Genetic<StartPosition>(factory, evaluator, mutator);
+		injectStartPositions(genetic, KNOWN_START_POSITIONS);
+
 		genetic.setPopulationCount(1000);
 		genetic.setEvaluationCount(10);
 		genetic.run();
@@ -42,6 +48,8 @@ public class StartPositionAnalyzer {
 		GenomeEvaluator<StartPosition> evaluator = new StockfishPlayEvaluator(0, 0);
 
 		Genetic<StartPosition> genetic = new Genetic<StartPosition>(factory, evaluator, mutator);
+		injectStartPositions(genetic, KNOWN_START_POSITIONS);
+
 		genetic.setPopulationCount(100);
 		genetic.setEvaluationCount(10);
 		genetic.run();
@@ -55,6 +63,8 @@ public class StartPositionAnalyzer {
 		GenomeEvaluator<StartPosition> evaluator = new StockfishPlayEvaluator(0, 0);
 
 		Genetic<StartPosition> genetic = new Genetic<StartPosition>(factory, evaluator, mutator);
+		injectStartPositions(genetic, KNOWN_START_POSITIONS);
+		
 		genetic.setPopulationCount(1000);
 		genetic.setEvaluationCount(100);
 		genetic.run();
@@ -72,6 +82,8 @@ public class StartPositionAnalyzer {
 		GenomeEvaluator<StartPosition> evaluator = new StockfishPlayEvaluator(5, 1);
 
 		Genetic<StartPosition> genetic = new Genetic<StartPosition>(factory, evaluator, mutator);
+		injectStartPositions(genetic, KNOWN_START_POSITIONS);
+
 		genetic.setPopulationCount(10);
 		genetic.setEvaluationCount(1);
 		genetic.run();
@@ -86,6 +98,8 @@ public class StartPositionAnalyzer {
 		GenomeEvaluator<StartPosition> evaluator = new StockfishPlayEvaluator(10, 10);
 
 		Genetic<StartPosition> genetic = new Genetic<StartPosition>(factory, evaluator, mutator);
+		injectStartPositions(genetic, KNOWN_START_POSITIONS);
+
 		genetic.setPopulationCount(10);
 		genetic.setEvaluationCount(3);
 		genetic.run();
@@ -100,6 +114,8 @@ public class StartPositionAnalyzer {
 		GenomeEvaluator<StartPosition> evaluator = new AverageGenomeEvaluator<>(new StockfishPlayEvaluator(20, 10), 3);
 
 		Genetic<StartPosition> genetic = new Genetic<StartPosition>(factory, evaluator, mutator);
+		injectStartPositions(genetic, KNOWN_START_POSITIONS);
+
 		genetic.setPopulationCount(10);
 		genetic.setEvaluationCount(3);
 		genetic.run();
@@ -117,6 +133,8 @@ public class StartPositionAnalyzer {
 		GenomeEvaluator<StartPosition> evaluator = new AverageGenomeEvaluator<>(new StockfishPlayEvaluator(1000, 10), 10);
 
 		Genetic<StartPosition> genetic = new Genetic<StartPosition>(factory, evaluator, mutator);
+		injectStartPositions(genetic, KNOWN_START_POSITIONS);
+
 		genetic.setPopulationCount(10);
 		genetic.setEvaluationCount(3);
 		genetic.run();
@@ -131,6 +149,8 @@ public class StartPositionAnalyzer {
 		GenomeEvaluator<StartPosition> evaluator = new AverageGenomeEvaluator<>(new StockfishPlayEvaluator(1000, 10), 10);
 
 		Genetic<StartPosition> genetic = new Genetic<StartPosition>(factory, evaluator, mutator);
+		injectStartPositions(genetic, KNOWN_START_POSITIONS);
+
 		genetic.setPopulationCount(100);
 		genetic.setEvaluationCount(10);
 		genetic.run();
@@ -145,8 +165,16 @@ public class StartPositionAnalyzer {
 		GenomeEvaluator<StartPosition> evaluator = new AverageGenomeEvaluator<>(new StockfishPlayEvaluator(1000, 20), 10);
 
 		Genetic<StartPosition> genetic = new Genetic<StartPosition>(factory, evaluator, mutator);
+		injectStartPositions(genetic, KNOWN_START_POSITIONS);
+
 		genetic.setPopulationCount(100);
 		genetic.setEvaluationCount(10);
 		genetic.run();
+	}
+	
+	private static void injectStartPositions(Genetic<StartPosition> genetic, StartPosition[] startPositions) {
+		for (StartPosition startPosition : startPositions) {
+			genetic.addGenome(startPosition);
+		}
 	}
 }

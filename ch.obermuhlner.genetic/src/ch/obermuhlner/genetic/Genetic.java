@@ -48,10 +48,8 @@ public class Genetic<T> {
 	}
 
 	public void run() {
-		if (population.isEmpty()) {
-			for (int i = 0; i < populationCount; i++) {
-				addGenome(factory.createGenom());
-			}
+		while(population.size() < populationCount) {
+			addGenome(factory.createGenom());
 		}
 		
 		for (int step = 0; step < stepCount; step++) {
@@ -83,7 +81,7 @@ public class Genetic<T> {
 		}
 	}
 	
-	private void addGenome(T genome) {
+	public void addGenome(T genome) {
 		population.add(new EvaluatedGenome<T>(genome));
 	}
 	
@@ -92,7 +90,7 @@ public class Genetic<T> {
 			for (int i = 0; i < evaluationCount; i++) {
 				int genomIndex2 = genomIndex1;
 				while (genomIndex2 == genomIndex1) {
-					genomIndex2 = random.nextInt(populationCount);
+					genomIndex2 = random.nextInt(population.size());
 				}
 				
 				EvaluatedGenome<T> genom1 = population.get(genomIndex1);
