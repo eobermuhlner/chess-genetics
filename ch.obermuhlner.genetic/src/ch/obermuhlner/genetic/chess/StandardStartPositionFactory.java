@@ -1,7 +1,5 @@
 package ch.obermuhlner.genetic.chess;
 
-import java.util.Random;
-
 import ch.obermuhlner.genetic.GenomeFactory;
 
 public class StandardStartPositionFactory implements GenomeFactory<StartPosition> {

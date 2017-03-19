@@ -10,8 +10,9 @@ public class StartPositionAnalyzer {
 
 
 	public static void main(String[] args) {
-		//analyzeBottomRight();
-		analyzeStockfishEval();
+		//analyzeFrontLeft();
+		//analyzeStockfishEvalFast();
+		analyzeStockfishEvalSlow();
 		//analyzeStockfishPlayFastest();
 		//analyzeStockfishPlayFast();
 		//analyzeStockfishPlaySlow();
@@ -20,12 +21,12 @@ public class StartPositionAnalyzer {
 		//analyzeStockfishPlayUltraSlowest();
 	}
 
-	public static void analyzeBottomRight() {
+	public static void analyzeFrontLeft() {
 		GenomeFactory<StartPosition> factory = new RandomStartPositionFactory();
 		
 		GenomeMutator<StartPosition> mutator = new StartPositionMutator();
 
-		GenomeEvaluator<StartPosition> evaluator = new BottomRightEvaluator();
+		GenomeEvaluator<StartPosition> evaluator = new FrontLeftEvaluator();
 
 		Genetic<StartPosition> genetic = new Genetic<StartPosition>(factory, evaluator, mutator);
 		genetic.setPopulationCount(1000);
@@ -33,12 +34,12 @@ public class StartPositionAnalyzer {
 		genetic.run();
 	}
 
-	public static void analyzeStockfishEval() {
+	public static void analyzeStockfishEvalFast() {
 		GenomeFactory<StartPosition> factory = new RandomStartPositionFactory();
 		
 		GenomeMutator<StartPosition> mutator = new StartPositionMutator();
 
-		GenomeEvaluator<StartPosition> evaluator = new StockfishSimpleEvaluator();
+		GenomeEvaluator<StartPosition> evaluator = new StockfishPlayEvaluator(0, 0);
 
 		Genetic<StartPosition> genetic = new Genetic<StartPosition>(factory, evaluator, mutator);
 		genetic.setPopulationCount(100);
@@ -46,6 +47,22 @@ public class StartPositionAnalyzer {
 		genetic.run();
 	}
 
+	public static void analyzeStockfishEvalSlow() {
+		GenomeFactory<StartPosition> factory = new RandomStartPositionFactory();
+		
+		GenomeMutator<StartPosition> mutator = new StartPositionMutator();
+
+		GenomeEvaluator<StartPosition> evaluator = new StockfishPlayEvaluator(0, 0);
+
+		Genetic<StartPosition> genetic = new Genetic<StartPosition>(factory, evaluator, mutator);
+		genetic.setPopulationCount(1000);
+		genetic.setEvaluationCount(100);
+		genetic.run();
+	}
+
+	/**
+	 * About 1 to 10 seconds per step.
+	 */
 	public static void analyzeStockfishPlayFastest() {
 		GenomeFactory<StartPosition> factory = new StandardStartPositionFactory();
 //		GenomeFactory<StartPosition> factory = new RandomStartPositionFactory();
@@ -61,8 +78,8 @@ public class StartPositionAnalyzer {
 	}
 
 	public static void analyzeStockfishPlayFast() {
-//		GenomeFactory<StartPosition> factory = new StandardStartPositionFactory();
-		GenomeFactory<StartPosition> factory = new RandomStartPositionFactory();
+		GenomeFactory<StartPosition> factory = new StandardStartPositionFactory();
+//		GenomeFactory<StartPosition> factory = new RandomStartPositionFactory();
 		
 		GenomeMutator<StartPosition> mutator = new StartPositionMutator();
 
@@ -75,8 +92,8 @@ public class StartPositionAnalyzer {
 	}
 
 	public static void analyzeStockfishPlaySlow() {
-//		GenomeFactory<StartPosition> factory = new StandardStartPositionFactory();
-		GenomeFactory<StartPosition> factory = new RandomStartPositionFactory();
+		GenomeFactory<StartPosition> factory = new StandardStartPositionFactory();
+//		GenomeFactory<StartPosition> factory = new RandomStartPositionFactory();
 		
 		GenomeMutator<StartPosition> mutator = new StartPositionMutator();
 
@@ -88,6 +105,9 @@ public class StartPositionAnalyzer {
 		genetic.run();
 	}
 
+	/**
+	 * About  seconds per step.
+	 */
 	public static void analyzeStockfishPlaySlowest() {
 //		GenomeFactory<StartPosition> factory = new StandardStartPositionFactory();
 		GenomeFactory<StartPosition> factory = new RandomStartPositionFactory();
@@ -117,8 +137,8 @@ public class StartPositionAnalyzer {
 	}
 
 	public static void analyzeStockfishPlayUltraSlowest() {
-//		GenomeFactory<StartPosition> factory = new StandardStartPositionFactory();
-		GenomeFactory<StartPosition> factory = new RandomStartPositionFactory();
+		GenomeFactory<StartPosition> factory = new StandardStartPositionFactory();
+//		GenomeFactory<StartPosition> factory = new RandomStartPositionFactory();
 		
 		GenomeMutator<StartPosition> mutator = new StartPositionMutator();
 

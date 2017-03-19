@@ -16,7 +16,6 @@ import ch.obermuhlner.genetic.GenomeEvaluator;
 public class StockfishPlayEvaluator implements GenomeEvaluator<StartPosition> {
 
 	private static final Pattern EVALUATION_RESULT = Pattern.compile("Total Evaluation: (-?[0-9]+\\.[0-9]*)");
-	private static final Pattern BESTMOVE_PONDER_RESULT = Pattern.compile("bestmove (\\S+) ponder (\\S+)");
 	private static final Pattern BESTMOVE_RESULT = Pattern.compile("bestmove (\\S+)");
 	private static final boolean PRINT_DEBUG = false;
 	
@@ -60,7 +59,9 @@ public class StockfishPlayEvaluator implements GenomeEvaluator<StartPosition> {
 	
 	@Override
 	public double evaluate(StartPosition first, StartPosition second) {
-		return evaluatePlay(first, second, moveCount, thinkingTime) - evaluatePlay(second, first, moveCount, thinkingTime);
+		double valueFirstAsWhite = evaluatePlay(first, second, moveCount, thinkingTime);
+		double valueFirstAsBlack = evaluatePlay(second, first, moveCount, thinkingTime);
+		return valueFirstAsWhite - valueFirstAsBlack;
 	}
 	
 	public double evaluatePlay(StartPosition white, StartPosition black, int moveCount, int thinkingTime) {
@@ -69,7 +70,7 @@ public class StockfishPlayEvaluator implements GenomeEvaluator<StartPosition> {
 			
 			double result = 0;
 		
-			sendCommand("ucinewgame");
+			//sendCommand("ucinewgame");
 			
 			String position = "position fen " + board.toFenString() + " w -- - 0 ";
 			List<String> moves = new ArrayList<>();
