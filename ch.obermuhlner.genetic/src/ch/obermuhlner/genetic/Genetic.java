@@ -15,10 +15,10 @@ public class Genetic<T> {
 	private final List<EvaluatedGenome<T>> population = new ArrayList<>();
 	
 	private double growBestFactor = 0.1;
-	private double growRandomFactor = 0.3;
+	private double growRandomFactor = 0.1;
 	private int populationCount = 1000;
-	private int stepCount = 100000;
 	private int evaluationCount = 100;
+	private int stepCount = 100000;
 	private int printCount = 3;
 	
 	public Genetic(GenomeFactory<T> factory, GenomeEvaluator<T> evaluator, GenomeMutator<T> mutator) {
@@ -35,26 +35,27 @@ public class Genetic<T> {
 		}
 		
 		for (int i = 0; i < stepCount; i++) {
-			runStep();
+			runStep(i);
 		}
 
 		printPopulation(population.size());
 	}
 
-	private void runStep() {
+	private void runStep(int step) {
 		evaluatePopulation();
 
 		sortPopulation();
+		System.out.println("# step " + step);
 		printPopulation(printCount);
 		
 		cullPopulation();
 	}
 
 	private void printPopulation(int count) {
-		System.out.println();
 		for (int i = 0; i < Math.min(count, population.size()); i++) {
 			System.out.println(population.get(i));
 		}
+		System.out.println();
 	}
 	
 	private void addGenome(T genome) {
