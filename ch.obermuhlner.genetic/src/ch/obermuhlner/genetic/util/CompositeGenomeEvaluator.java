@@ -1,14 +1,14 @@
-package ch.obermuhlner.genetic.chess;
+package ch.obermuhlner.genetic.util;
 
 import java.util.List;
 
 import ch.obermuhlner.genetic.GenomeEvaluator;
 
-public class CompositeEvaluator<T> implements GenomeEvaluator<T> {
+public class CompositeGenomeEvaluator<T> implements GenomeEvaluator<T> {
 
 	private List<GenomeEvaluator<T>> evaluators;
 
-	public CompositeEvaluator(List<GenomeEvaluator<T>> evaluators) {
+	public CompositeGenomeEvaluator(List<GenomeEvaluator<T>> evaluators) {
 		this.evaluators = evaluators;
 	}
 	

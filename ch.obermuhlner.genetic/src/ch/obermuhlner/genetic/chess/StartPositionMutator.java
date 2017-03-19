@@ -12,7 +12,7 @@ public class StartPositionMutator implements GenomeMutator<StartPosition> {
 	public StartPosition createMutated(StartPosition genome) {
 		StartPosition offspring = genome.copy();
 
-		int mutationCount = random.nextInt(7) + 1;
+		int mutationCount = random.nextInt(3) + 1;
 		for (int i = 0; i < mutationCount; i++) {
 			mutate(offspring);
 		}

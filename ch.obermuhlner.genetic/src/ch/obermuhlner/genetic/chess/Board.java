@@ -55,6 +55,16 @@ public class Board {
 	private int height;
 
 	private final char fields[];
+
+	public Board() {
+		this(8, 8);
+	}
+	
+	public Board(String fen) {
+		this(8, 8);
+		
+		setFen(fen);
+	}
 	
 	public Board(int width, int height) {
 		this.width = width;
@@ -97,7 +107,7 @@ public class Board {
 		}
 	}
 	
-	public void setFenString(String fen) {
+	public void setFen(String fen) {
 		clear();
 		
 		int index = 0;

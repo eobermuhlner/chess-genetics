@@ -4,10 +4,16 @@ import java.util.Random;
 
 public class StartPosition extends Board {
 
+	public StartPosition(String fen) {
+		this();
+		
+		setFen(fen);
+	}
+
 	public StartPosition() {
 		super(8, 4);
 	}
-	
+
 	public StartPosition copy() {
 		StartPosition result = new StartPosition();
 		

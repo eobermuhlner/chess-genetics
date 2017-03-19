@@ -8,7 +8,6 @@ import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -16,17 +15,17 @@ import ch.obermuhlner.genetic.GenomeEvaluator;
 
 public class StockfishPlayEvaluator implements GenomeEvaluator<StartPosition> {
 
-	private final static Pattern EVALUATION_RESULT = Pattern.compile("Total Evaluation: (-?[0-9]+\\.[0-9]*)");
-	private final static Pattern BESTMOVE_PONDER_RESULT = Pattern.compile("bestmove (.+) ponder (.+)");
-	private final static Pattern BESTMOVE_RESULT = Pattern.compile("bestmove (.+)");
-	private static final int MOVE_COUNT = 20;
-	private static final int THINKING_TIME = 5;
+	private static final Pattern EVALUATION_RESULT = Pattern.compile("Total Evaluation: (-?[0-9]+\\.[0-9]*)");
+	private static final Pattern BESTMOVE_PONDER_RESULT = Pattern.compile("bestmove (.+) ponder (.+)");
+	private static final Pattern BESTMOVE_RESULT = Pattern.compile("bestmove (.+)");
 	private static final boolean PRINT_DEBUG = false;
 	
 	private final String chessEngine = "C:/Apps/stockfish-8-win/Windows/stockfish_8_x64";
 
-	private BufferedWriter processInput;
+	private int moveCount = 10;
+	private int thinkingTime = 5;
 
+	private BufferedWriter processInput;
 	private BufferedReader processOutput;
 
 	public void start() {
@@ -52,7 +51,7 @@ public class StockfishPlayEvaluator implements GenomeEvaluator<StartPosition> {
 	
 	@Override
 	public double evaluate(StartPosition first, StartPosition second) {
-		return evaluatePlay(first, second, MOVE_COUNT, THINKING_TIME);
+		return evaluatePlay(first, second, moveCount, thinkingTime);
 	}
 	
 	public double evaluatePlay(StartPosition white, StartPosition black, int moveCount, int thinkingTime) {
@@ -74,7 +73,7 @@ public class StockfishPlayEvaluator implements GenomeEvaluator<StartPosition> {
 				List<String> bestmove = readUntilBestMove(processOutput);
 				
 				if (bestmove == null) {
-					return moves.size() % 2 == 0 ? 10.0 : -10.0;
+					return mateValue(moves.size());
 				}
 				
 				moves.addAll(bestmove);
@@ -92,6 +91,15 @@ public class StockfishPlayEvaluator implements GenomeEvaluator<StartPosition> {
 		});
 	}
 	
+	private double mateValue(int movesUntilMate) {
+		double decreasingFactor = Math.pow(0.99, movesUntilMate);
+		if (movesUntilMate % 2 == 0) {
+			return -100 * decreasingFactor;
+		} else {
+			return 100 * decreasingFactor;
+		}
+	}
+
 	private String toMovesList(List<String> moves) {
 		StringBuilder builder = new StringBuilder();
 		
@@ -181,17 +189,21 @@ public class StockfishPlayEvaluator implements GenomeEvaluator<StartPosition> {
 	}
 	
 	public static void main(String[] args) {
-		StartPosition black = new StandardStartPositionFactory().createGenom();
+		StartPosition white = new StandardStartPositionFactory().createGenom();
+		//StartPosition black = new StandardStartPositionFactory().createGenom();
+		StartPosition black = new StartPosition("5n2/p1pprb1p/pp1n1pb1/1prk1q2");
+		System.out.println(StartPosition.toBoard(white, black).toFenString());
+		
 		StockfishPlayEvaluator evaluator = new StockfishPlayEvaluator();
 		double total = 0;
-		int n = 100;
+		int n = 10;
 		for (int i = 0; i < n; i++) {
-			double value = evaluator.evaluatePlay(black, black, 1000, 1);
+			double value = evaluator.evaluatePlay(white, black, 1000, 20);
 			total += value;
 			System.out.println("VALUE " + value);
 		}
 		
 		System.out.println("AVERAGE " + (total / n));
-		System.out.println("EVAL " + evaluator.evaluatePlay(black, black, 1, 0));
+		System.out.println("EVAL " + evaluator.evaluatePlay(white, black, 1, 0));
 	}
 }

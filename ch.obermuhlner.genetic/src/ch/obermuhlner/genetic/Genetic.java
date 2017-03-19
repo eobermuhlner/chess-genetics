@@ -16,8 +16,8 @@ public class Genetic<T> {
 	
 	private double growBestFactor = 0.1;
 	private double growRandomFactor = 0.1;
-	private int populationCount = 1000;
-	private int evaluationCount = 100;
+	private int populationCount = 50;
+	private int evaluationCount = 5;
 	private int stepCount = 100000;
 	private int printCount = 3;
 	
@@ -27,6 +27,26 @@ public class Genetic<T> {
 		this.mutator = mutator;
 	}
 	
+	public void setGrowBestFactor(double growBestFactor) {
+		this.growBestFactor = growBestFactor;
+	}
+
+	public void setGrowRandomFactor(double growRandomFactor) {
+		this.growRandomFactor = growRandomFactor;
+	}
+
+	public void setPopulationCount(int populationCount) {
+		this.populationCount = populationCount;
+	}
+
+	public void setEvaluationCount(int evaluationCount) {
+		this.evaluationCount = evaluationCount;
+	}
+
+	public void setStepCount(int stepCount) {
+		this.stepCount = stepCount;
+	}
+
 	public void run() {
 		if (population.isEmpty()) {
 			for (int i = 0; i < populationCount; i++) {
