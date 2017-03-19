@@ -9,12 +9,13 @@ public class StartPositionAnalyzer {
 
 
 	public static void main(String[] args) {
-		GenomeFactory<StartPosition> factory = new StartPositionFactory();
+		//GenomeFactory<StartPosition> factory = new StandardStartPositionFactory();
+		GenomeFactory<StartPosition> factory = new RandomStartPositionFactory();
 		GenomeMutator<StartPosition> mutator = new StartPositionMutator();
 
 //		GenomeEvaluator<StartPosition> evaluator = new BottomLeftEvaluator();
-//		GenomeEvaluator<StartPosition> evaluator = new StockfishSimpleEvaluator();
-		GenomeEvaluator<StartPosition> evaluator = new StockfishPlayEvaluator();
+		GenomeEvaluator<StartPosition> evaluator = new StockfishSimpleEvaluator();
+//		GenomeEvaluator<StartPosition> evaluator = new StockfishPlayEvaluator();
 //		GenomeEvaluator<StartPosition> evaluator = new CompositeEvaluator<>(Arrays.asList(new StockfishSimpleEvaluator(), new StockfishPlayEvaluator()));
 
 		Genetic<StartPosition> genetic = new Genetic<StartPosition>(factory, evaluator, mutator);
