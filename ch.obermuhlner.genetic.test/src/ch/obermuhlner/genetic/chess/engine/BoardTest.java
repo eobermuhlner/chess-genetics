@@ -27,19 +27,24 @@ public class BoardTest {
 	
 	@Test
 	public void testPawnMoves1() {
-		assertMoves(newBoard("Pe2").getAllMoves(), "e3", "e4");
+		assertMoves(boardMoves("Pe2"), "e3", "e4"); // double move
+		assertMoves(boardMoves("Pe3"), "e4"); // single move
+		assertMoves(boardMoves("Pe3", "pd4", "pf4"), "e4", "d4", "f4"); // kill left and right
+		assertMoves(boardMoves("Pa3", "pb4"), "a4", "b4"); // left side of board, kill right
+		assertMoves(boardMoves("Ph3", "pg4"), "h4", "g4"); // right side of board, kill left
+		assertMoves(boardMoves("Pe3", "pe4")); // blocked pawn
 	}
 
 	@Test
 	public void testPawnMoves2() {
-		assertMoves(newBoard("Pe3").getAllMoves(), "e4");
+		assertMoves(boardMoves("Pe7"), "e8", "e8", "e8", "e8"); // four conversions: NBRQ
+		assertMoves(boardMoves("Pe7", "pd8"), "e8", "e8", "e8", "e8", "d8", "d8", "d8", "d8"); // four conversions: NBRQ
 	}
-
-	@Test
-	public void testPawnMoves3() {
-		assertMoves(newBoard("Pe3", "pd4", "pf4").getAllMoves(), "e4", "d4", "f4");
+	
+	private List<Move> boardMoves(String... positions) {
+		return newBoard(positions).getAllMoves();
 	}
-
+	
 	private Board newBoard(String... positions) {
 		Board board = new Board();
 		board.clear();

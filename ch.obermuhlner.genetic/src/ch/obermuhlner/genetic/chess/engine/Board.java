@@ -358,13 +358,13 @@ public class Board {
 	}
 
 	private void addPawnMoves(Position position, List<Move> moves) {
-		int direction = position.side == Side.White ? 1 : -1;
+		int direction = getPawnDirection(position.side);
 		
-		if (addMovePawnIfFree(position, position.x, position.y + direction, moves) && isPawnStart(position)) {
+		if (addMovePawnIfFree(position, position.x, position.y + direction, moves) && position.y == getPawnStart(position.side)) {
 			addMovePawnIfFree(position, position.x, position.y + direction + direction, moves);
 		}
-		addMoveMustKill(position, position.x + 1, position.y + direction, moves);
-		addMoveMustKill(position, position.x - 1, position.y + direction, moves);
+		addMovePawnMustKill(position, position.x + 1, position.y + direction, moves);
+		addMovePawnMustKill(position, position.x - 1, position.y + direction, moves);
 		
 		// TODO add en-passant
 	}
@@ -428,14 +428,6 @@ public class Board {
 		addMoveIfSave(position, position.x+1, position.y-1, moves);
 	}
 	
-	private boolean isPawnStart(Position position) {
-		if (position.side == Side.White) {
-			return position.y == 1;
-		} else {
-			return position.y == 6;
-		}
-	}
-
 	private boolean addMoveIfSave(Position position, int targetX, int targetY, List<Move> moves) {
 		// TODO verify if safe from attack
 		return addMove(position, targetX, targetY, moves);
@@ -460,25 +452,53 @@ public class Board {
 		return false;
 	}
 
-	private static int getLastRow(Side side) {
-		if (side == Side.White) {
-			return 7;
-		} else { 
-			return 0;
-		}
-	}
-
-	private boolean addMoveMustKill(Position position, int targetX, int targetY, List<Move> moves) {
+	private boolean addMovePawnMustKill(Position position, int targetX, int targetY, List<Move> moves) {
 		if (targetX < 0 || targetX > 7 || targetY < 0 || targetY > 7) {
 			return false;
 		}
 		
 		Position target = getPosition(targetX, targetY);
 		if (target != null && target.side != position.side) {
-			moves.add(new Move(position, targetX, targetY, target));
+			if (targetY == getLastRow(position.side)) {
+				for (Piece convert : Arrays.asList(Piece.Knight, Piece.Bishop, Piece.Rook, Piece.Queen)) {
+					moves.add(new Move(position, targetX, targetY, target, convert));
+				}
+			} else {
+				moves.add(new Move(position, targetX, targetY, target));
+			}
 			return true;
 		}
 		return false;
+	}
+
+	private static int getPawnDirection(Side side) {
+		switch(side) {
+		case White:
+			return 1;
+		case Black:
+			return -1;
+		}
+		throw new IllegalArgumentException("Unknown side: " + side);
+	}
+
+	private static int getPawnStart(Side side) {
+		switch(side) {
+		case White:
+			return 1;
+		case Black:
+			return 6;
+		}
+		throw new IllegalArgumentException("Unknown side: " + side);
+	}
+
+	private static int getLastRow(Side side) {
+		switch(side) {
+		case White:
+			return 7;
+		case Black:
+			return 0;
+		}
+		throw new IllegalArgumentException("Unknown side: " + side);
 	}
 
 	private boolean addMove(Position position, int targetX, int targetY, List<Move> moves) {
