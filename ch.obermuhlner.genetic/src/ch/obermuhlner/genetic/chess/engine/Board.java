@@ -1,6 +1,7 @@
 package ch.obermuhlner.genetic.chess.engine;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
@@ -26,7 +27,7 @@ public class Board {
 		}
 		
 		public char getCharacter() {
-			return white ? piece.getWhiteCharacter() : piece.getBlackCharacter();
+			return piece.getCharacter(white);
 		}
 
 		@Override
@@ -40,17 +41,26 @@ public class Board {
 		int targetX;
 		int targetY;
 		Position kill;
+		Piece convert;
 		
 		public Move(Position source, int targetX, int targetY, Position kill) {
+			this(source, targetX, targetY, kill, null);
+		}
+
+		public Move(Position source, int targetX, int targetY, Position kill, Piece convert) {
 			this.source = source;
 			this.targetX = targetX;
 			this.targetY = targetY;
 			this.kill = kill;
+			this.convert = convert;
 		}
 		
 		public double getValue() {
 			if (kill != null) {
 				return kill.getValue();
+			}
+			if (convert != null) {
+				return convert.getValue();
 			}
 			return 0.1;
 		}
@@ -63,6 +73,9 @@ public class Board {
 			if (kill != null) {
 				result.append("x");
 				result.append(kill);
+			}
+			if (convert != null) {
+				result.append(convert.getCharacter(source.white));
 			}
 			result.append("(");
 			result.append(getValue());
@@ -164,6 +177,7 @@ public class Board {
 	private static Position toPosition(char character, int index) {
 		int x = index % 8;
 		int y = 7 - index / 8;
+	
 		for (Piece piece : Piece.values()) {
 			if (piece.getWhiteCharacter() == character) {
 				return new Position(piece, x, y, true);
@@ -173,6 +187,11 @@ public class Board {
 			}
 		}
 		return null;
+	}
+	
+	public void addPosition(Piece piece, int x, int y, boolean white) {
+		positions.add(new Position(piece, x, y, white));
+		analyzePosition();
 	}
 	
 	private void analyzePosition() {
@@ -295,8 +314,8 @@ public class Board {
 	private void addPawnMoves(Position position, List<Move> moves) {
 		int direction = position.white ? 1 : -1;
 		
-		if (addMoveIfFree(position, position.x, position.y + direction, moves) && isPawnStart(position)) {
-			addMoveIfFree(position, position.x, position.y + direction + direction, moves);
+		if (addMovePawnIfFree(position, position.x, position.y + direction, moves) && isPawnStart(position)) {
+			addMovePawnIfFree(position, position.x, position.y + direction + direction, moves);
 		}
 		addMoveMustKill(position, position.x + 1, position.y + direction, moves);
 		addMoveMustKill(position, position.x - 1, position.y + direction, moves);
@@ -376,17 +395,31 @@ public class Board {
 		return addMove(position, targetX, targetY, moves);
 	}
 	
-	private boolean addMoveIfFree(Position position, int targetX, int targetY, List<Move> moves) {
+	private boolean addMovePawnIfFree(Position position, int targetX, int targetY, List<Move> moves) {
 		if (targetX < 0 || targetX > 7 || targetY < 0 || targetY > 7) {
 			return false;
 		}
 		
 		Position target = getPosition(targetX, targetY);
 		if (target == null) {
-			moves.add(new Move(position, targetX, targetY, target));
+			if (targetY == getLastRow(position.white)) {
+				for (Piece convert : Arrays.asList(Piece.Knight, Piece.Bishop, Piece.Rook, Piece.Queen)) {
+					moves.add(new Move(position, targetX, targetY, target, convert));
+				}
+			} else {
+				moves.add(new Move(position, targetX, targetY, target));
+			}
 			return true;
 		}
 		return false;
+	}
+
+	private static int getLastRow(boolean white) {
+		if (white) {
+			return 7;
+		} else { 
+			return 0;
+		}
 	}
 
 	private boolean addMoveMustKill(Position position, int targetX, int targetY, List<Move> moves) {
@@ -419,10 +452,13 @@ public class Board {
 		positions.remove(move.source);
 		positions.remove(move.kill);
 		
-		Position newPosition = new Position(move.source.piece, move.targetX, move.targetY, move.source.white);
+		Piece piece = move.convert == null ? move.source.piece : move.convert;
+		Position newPosition = new Position(piece, move.targetX, move.targetY, move.source.white);
 		
 		positions.add(newPosition);
-		whiteToMove = false;
+		whiteToMove = !whiteToMove;
+		
+		analyzePosition();
 	}
 	
 	public Board clone() {

@@ -4,7 +4,7 @@ public enum Piece {
 	
 	Pawn('p', 1),
 	Knight('n', 3),
-	Bishop('b', 3.1),
+	Bishop('b', 3),
 	Rook('r', 5),
 	Queen('q', 9),
 	King('k', 4);
@@ -15,6 +15,10 @@ public enum Piece {
 	Piece(char character, double value) {
 		this.character = character;
 		this.value = value;
+	}
+	
+	public char getCharacter(boolean white) {
+		return white ? getWhiteCharacter() : getBlackCharacter();
 	}
 	
 	public char getBlackCharacter() {
