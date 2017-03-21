@@ -13,13 +13,13 @@ public class Board {
 		public Piece piece;
 		public int x;
 		public int y;
-		public boolean white;
+		public Side side;
 
-		public Position(Piece piece, int x, int y, boolean white) {
+		public Position(Piece piece, Side side, int x, int y) {
 			this.piece = piece;
 			this.x = x;
 			this.y = y;
-			this.white = white;
+			this.side = side;
 		}
 		
 		public double getValue() {
@@ -27,7 +27,7 @@ public class Board {
 		}
 		
 		public char getCharacter() {
-			return piece.getCharacter(white);
+			return piece.getCharacter(side);
 		}
 
 		@Override
@@ -75,7 +75,8 @@ public class Board {
 				result.append(kill);
 			}
 			if (convert != null) {
-				result.append(convert.getCharacter(source.white));
+				result.append("=");
+				result.append(convert.getCharacter(source.side));
 			}
 			result.append("(");
 			result.append(getValue());
@@ -89,7 +90,7 @@ public class Board {
 	
 	private final List<Position> positions = new ArrayList<>();
 	
-	private boolean whiteToMove = true;
+	private Side sideToMove = Side.White;
 	
 	public Board() {
 		setStartPosition();
@@ -102,42 +103,42 @@ public class Board {
 	public void setStartPosition() {
 		clear();
 		
-		positions.add(new Position(Piece.Rook, 0, 0, true));
-		positions.add(new Position(Piece.Knight, 1, 0, true));
-		positions.add(new Position(Piece.Bishop, 2, 0, true));
-		positions.add(new Position(Piece.Queen, 3, 0, true));
-		positions.add(new Position(Piece.King, 4, 0, true));
-		positions.add(new Position(Piece.Bishop, 5, 0, true));
-		positions.add(new Position(Piece.Knight, 6, 0, true));
-		positions.add(new Position(Piece.Rook, 7, 0, true));
+		positions.add(new Position(Piece.Rook, Side.White, 0, 0));
+		positions.add(new Position(Piece.Knight, Side.White, 1, 0));
+		positions.add(new Position(Piece.Bishop, Side.White, 2, 0));
+		positions.add(new Position(Piece.Queen, Side.White, 3, 0));
+		positions.add(new Position(Piece.King, Side.White, 4, 0));
+		positions.add(new Position(Piece.Bishop, Side.White, 5, 0));
+		positions.add(new Position(Piece.Knight, Side.White, 6, 0));
+		positions.add(new Position(Piece.Rook, Side.White, 7, 0));
 		
-		positions.add(new Position(Piece.Pawn, 0, 1, true));
-		positions.add(new Position(Piece.Pawn, 1, 1, true));
-		positions.add(new Position(Piece.Pawn, 2, 1, true));
-		positions.add(new Position(Piece.Pawn, 3, 1, true));
-		positions.add(new Position(Piece.Pawn, 4, 1, true));
-		positions.add(new Position(Piece.Pawn, 5, 1, true));
-		positions.add(new Position(Piece.Pawn, 6, 1, true));
-		positions.add(new Position(Piece.Pawn, 7, 1, true));
+		positions.add(new Position(Piece.Pawn, Side.White, 0, 1));
+		positions.add(new Position(Piece.Pawn, Side.White, 1, 1));
+		positions.add(new Position(Piece.Pawn, Side.White, 2, 1));
+		positions.add(new Position(Piece.Pawn, Side.White, 3, 1));
+		positions.add(new Position(Piece.Pawn, Side.White, 4, 1));
+		positions.add(new Position(Piece.Pawn, Side.White, 5, 1));
+		positions.add(new Position(Piece.Pawn, Side.White, 6, 1));
+		positions.add(new Position(Piece.Pawn, Side.White, 7, 1));
 		
 		
-		positions.add(new Position(Piece.Rook, 0, 7, false));
-		positions.add(new Position(Piece.Knight, 1, 7, false));
-		positions.add(new Position(Piece.Bishop, 2, 7, false));
-		positions.add(new Position(Piece.Queen, 3, 7, false));
-		positions.add(new Position(Piece.King, 4, 7, false));
-		positions.add(new Position(Piece.Bishop, 5, 7, false));
-		positions.add(new Position(Piece.Knight, 6, 7, false));
-		positions.add(new Position(Piece.Rook, 7, 7, false));
+		positions.add(new Position(Piece.Rook, Side.Black, 0, 7));
+		positions.add(new Position(Piece.Knight, Side.Black, 1, 7));
+		positions.add(new Position(Piece.Bishop, Side.Black, 2, 7));
+		positions.add(new Position(Piece.Queen, Side.Black, 3, 7));
+		positions.add(new Position(Piece.King, Side.Black, 4, 7));
+		positions.add(new Position(Piece.Bishop, Side.Black, 5, 7));
+		positions.add(new Position(Piece.Knight, Side.Black, 6, 7));
+		positions.add(new Position(Piece.Rook, Side.Black, 7, 7));
 		
-		positions.add(new Position(Piece.Pawn, 0, 6, false));
-		positions.add(new Position(Piece.Pawn, 1, 6, false));
-		positions.add(new Position(Piece.Pawn, 2, 6, false));
-		positions.add(new Position(Piece.Pawn, 3, 6, false));
-		positions.add(new Position(Piece.Pawn, 4, 6, false));
-		positions.add(new Position(Piece.Pawn, 5, 6, false));
-		positions.add(new Position(Piece.Pawn, 6, 6, false));
-		positions.add(new Position(Piece.Pawn, 7, 6, false));
+		positions.add(new Position(Piece.Pawn, Side.Black, 0, 6));
+		positions.add(new Position(Piece.Pawn, Side.Black, 1, 6));
+		positions.add(new Position(Piece.Pawn, Side.Black, 2, 6));
+		positions.add(new Position(Piece.Pawn, Side.Black, 3, 6));
+		positions.add(new Position(Piece.Pawn, Side.Black, 4, 6));
+		positions.add(new Position(Piece.Pawn, Side.Black, 5, 6));
+		positions.add(new Position(Piece.Pawn, Side.Black, 6, 6));
+		positions.add(new Position(Piece.Pawn, Side.Black, 7, 6));
 		
 		analyzePosition();
 	}
@@ -180,17 +181,17 @@ public class Board {
 	
 		for (Piece piece : Piece.values()) {
 			if (piece.getWhiteCharacter() == character) {
-				return new Position(piece, x, y, true);
+				return new Position(piece, Side.White, x, y);
 			}
 			if (piece.getBlackCharacter() == character) {
-				return new Position(piece, x, y, false);
+				return new Position(piece, Side.Black, x, y);
 			}
 		}
 		return null;
 	}
-	
-	public void addPosition(Piece piece, int x, int y, boolean white) {
-		positions.add(new Position(piece, x, y, white));
+
+	public void addPosition(Piece piece, Side side, int x, int y) {
+		positions.add(new Position(piece, side, x, y));
 		analyzePosition();
 	}
 	
@@ -198,8 +199,8 @@ public class Board {
 		
 	}
 
-	public boolean isWhiteToMove() {
-		return whiteToMove;
+	public Side getSideToMove() {
+		return sideToMove;
 	}
 	
 	public boolean isMate() {
@@ -223,13 +224,13 @@ public class Board {
 			.findFirst().orElse(null);
 	}
 	
-	public double getSideValue(boolean white) {
+	public double getSideValue(Side side) {
 		double value = positions.stream()
-				.filter(position -> position.white == white)
+				.filter(position -> position.side == side)
 				.mapToDouble(position -> position.getValue())
 				.sum();
 		
-		if (whiteToMove == white) {
+		if (sideToMove == side) {
 			value += 0.5;
 		}
 		
@@ -237,7 +238,7 @@ public class Board {
 	}
 	
 	public double getValue() {
-		return getSideValue(true) -getSideValue(false);
+		return getSideValue(Side.White) -getSideValue(Side.Black);
 	}
 	
 	public List<Move> getAllMoves() {
@@ -256,7 +257,7 @@ public class Board {
 		List<Move> moves = new ArrayList<>();
 		
 		moves.addAll(positions.stream()
-			.filter(position -> position.white == whiteToMove)
+			.filter(position -> position.side == sideToMove)
 			.filter(position -> position.piece == Piece.King)
 			.flatMap(position -> getAllMoves(position).stream())
 			.collect(Collectors.toList()));
@@ -271,7 +272,7 @@ public class Board {
 		List<Move> moves = new ArrayList<>();
 
 		moves.addAll(positions.stream()
-				.filter(position -> position.white == whiteToMove)
+				.filter(position -> position.side == sideToMove)
 				.filter(position -> !moveWillLeaveInCheck(position))
 				.flatMap(position -> getAllMoves(position).stream())
 				.collect(Collectors.toList()));
@@ -312,7 +313,7 @@ public class Board {
 	}
 
 	private void addPawnMoves(Position position, List<Move> moves) {
-		int direction = position.white ? 1 : -1;
+		int direction = position.side == Side.White ? 1 : -1;
 		
 		if (addMovePawnIfFree(position, position.x, position.y + direction, moves) && isPawnStart(position)) {
 			addMovePawnIfFree(position, position.x, position.y + direction + direction, moves);
@@ -383,7 +384,7 @@ public class Board {
 	}
 	
 	private boolean isPawnStart(Position position) {
-		if (position.white) {
+		if (position.side == Side.White) {
 			return position.y == 1;
 		} else {
 			return position.y == 6;
@@ -402,7 +403,7 @@ public class Board {
 		
 		Position target = getPosition(targetX, targetY);
 		if (target == null) {
-			if (targetY == getLastRow(position.white)) {
+			if (targetY == getLastRow(position.side)) {
 				for (Piece convert : Arrays.asList(Piece.Knight, Piece.Bishop, Piece.Rook, Piece.Queen)) {
 					moves.add(new Move(position, targetX, targetY, target, convert));
 				}
@@ -414,8 +415,8 @@ public class Board {
 		return false;
 	}
 
-	private static int getLastRow(boolean white) {
-		if (white) {
+	private static int getLastRow(Side side) {
+		if (side == Side.White) {
 			return 7;
 		} else { 
 			return 0;
@@ -428,7 +429,7 @@ public class Board {
 		}
 		
 		Position target = getPosition(targetX, targetY);
-		if (target != null && target.white != position.white) {
+		if (target != null && target.side != position.side) {
 			moves.add(new Move(position, targetX, targetY, target));
 			return true;
 		}
@@ -441,7 +442,7 @@ public class Board {
 		}
 		
 		Position target = getPosition(targetX, targetY);
-		if (target == null || target.white != position.white) {
+		if (target == null || target.side != position.side) {
 			moves.add(new Move(position, targetX, targetY, target));
 			return true;
 		}
@@ -453,10 +454,10 @@ public class Board {
 		positions.remove(move.kill);
 		
 		Piece piece = move.convert == null ? move.source.piece : move.convert;
-		Position newPosition = new Position(piece, move.targetX, move.targetY, move.source.white);
+		Position newPosition = new Position(piece, move.source.side, move.targetX, move.targetY);
 		
 		positions.add(newPosition);
-		whiteToMove = !whiteToMove;
+		sideToMove = Side.toOtherSide(sideToMove);
 		
 		analyzePosition();
 	}
@@ -465,7 +466,7 @@ public class Board {
 		Board board = new Board();
 		
 		board.positions.addAll(positions);
-		board.whiteToMove = whiteToMove;
+		board.sideToMove = sideToMove;
 		
 		return board;
 	}

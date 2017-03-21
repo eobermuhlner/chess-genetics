@@ -17,8 +17,8 @@ public enum Piece {
 		this.value = value;
 	}
 	
-	public char getCharacter(boolean white) {
-		return white ? getWhiteCharacter() : getBlackCharacter();
+	public char getCharacter(Side side) {
+		return side == Side.White ? getWhiteCharacter() : getBlackCharacter();
 	}
 	
 	public char getBlackCharacter() {

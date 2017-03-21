@@ -40,7 +40,7 @@ public class RandomChessEngine {
 			} while (true);
 			
 			if (board.isMate()) {
-				if (board.isWhiteToMove()) {
+				if (board.getSideToMove() == Side.White) {
 					blackWins++;
 				} else {
 					whiteWins++;
