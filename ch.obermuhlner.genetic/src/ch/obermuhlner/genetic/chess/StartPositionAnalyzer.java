@@ -22,9 +22,12 @@ public class StartPositionAnalyzer {
 		//analyzeStockfishPlayFastest();
 		//analyzeStockfishPlayFast();
 		//analyzeStockfishPlaySlow();
-		analyzeStockfishPlaySlowest();
+		//analyzeStockfishPlaySlowest();
 		//analyzeStockfishPlayUltraSlow();
 		//analyzeStockfishPlayUltraSlowest();
+		
+		analyzeEvalMonteCarloChessEngine();
+		//analyzePlayMonteCarloChessEngine();
 	}
 
 	public static void analyzeFrontLeft() {
@@ -173,7 +176,37 @@ public class StartPositionAnalyzer {
 		genetic.setEvaluationCount(10);
 		genetic.run();
 	}
-	
+
+	public static void analyzeEvalMonteCarloChessEngine() {
+		GenomeFactory<StartPosition> factory = new RandomStartPositionFactory();
+		
+		GenomeMutator<StartPosition> mutator = new StartPositionMutator();
+
+		GenomeEvaluator<StartPosition> evaluator = new MonteCarloChessEngineEvaluator(1, 0, false);
+
+		Genetic<StartPosition> genetic = new Genetic<StartPosition>(factory, evaluator, mutator);
+		//injectStartPositions(genetic, KNOWN_START_POSITIONS);
+
+		genetic.setPopulationCount(100);
+		genetic.setEvaluationCount(10);
+		genetic.run();
+	}
+
+	public static void analyzePlayMonteCarloChessEngine() {
+		GenomeFactory<StartPosition> factory = new RandomStartPositionFactory();
+		
+		GenomeMutator<StartPosition> mutator = new StartPositionMutator();
+
+		GenomeEvaluator<StartPosition> evaluator = new MonteCarloChessEngineEvaluator(10, 50, true);
+
+		Genetic<StartPosition> genetic = new Genetic<StartPosition>(factory, evaluator, mutator);
+		//injectStartPositions(genetic, KNOWN_START_POSITIONS);
+
+		genetic.setPopulationCount(100);
+		genetic.setEvaluationCount(10);
+		genetic.run();
+	}
+
 	private static void injectStartPositions(Genetic<StartPosition> genetic, StartPosition[] startPositions) {
 		for (StartPosition startPosition : startPositions) {
 			genetic.addGenome(startPosition);

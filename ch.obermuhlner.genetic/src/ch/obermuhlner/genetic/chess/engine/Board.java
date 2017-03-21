@@ -288,7 +288,7 @@ public class Board {
 	}
 	
 	public double getValue() {
-		return getSideValue(Side.White) -getSideValue(Side.Black);
+		return getSideValue(Side.White) - getSideValue(Side.Black);
 	}
 	
 	public List<Move> getAllMoves() {
@@ -385,18 +385,18 @@ public class Board {
 		addMove(position, position.x-2, position.y-1, moves);
 	}
 
-	private void addRookMoves(Position position, List<Move> moves) {
-		addRayMoves(position, -1, 0, moves);
-		addRayMoves(position, +1, 0, moves);
-		addRayMoves(position, 0, -1, moves);
-		addRayMoves(position, 0, +1, moves);
-	}
-
 	private void addBishopMoves(Position position, List<Move> moves) {
 		addRayMoves(position, -1, -1, moves);
 		addRayMoves(position, +1, -1, moves);
 		addRayMoves(position, -1, +1, moves);
 		addRayMoves(position, +1, +1, moves);
+	}
+
+	private void addRookMoves(Position position, List<Move> moves) {
+		addRayMoves(position, -1, 0, moves);
+		addRayMoves(position, +1, 0, moves);
+		addRayMoves(position, 0, -1, moves);
+		addRayMoves(position, 0, +1, moves);
 	}
 
 	private void addQueenMoves(Position position, List<Move> moves) {
@@ -531,7 +531,7 @@ public class Board {
 		Position newPosition = new Position(piece, move.source.side, move.targetX, move.targetY);
 		
 		positions.add(newPosition);
-		sideToMove = Side.toOtherSide(sideToMove);
+		sideToMove = sideToMove.otherSide();
 		
 		analyzePosition();
 	}

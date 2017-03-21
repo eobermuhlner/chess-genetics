@@ -3,8 +3,12 @@ package ch.obermuhlner.genetic.chess.engine;
 public enum Side {
 	White,
 	Black;
+	
+	public Side otherSide() {
+		return otherSide(this);
+	}
 
-	public static Side toOtherSide(Side side) {
+	private static Side otherSide(Side side) {
 		if (side == White) {
 			return Black;
 		} else {
