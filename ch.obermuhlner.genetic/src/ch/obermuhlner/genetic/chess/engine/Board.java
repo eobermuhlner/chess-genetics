@@ -415,10 +415,13 @@ public class Board {
 		int x = position.x;
 		int y = position.y;
 		
+		boolean ok = false;
 		do {
 			x += directionX;
 			y += directionY;
-		} while(addMove(position, x, y, moves));
+			Move move = addMove(position, x, y, moves);
+			ok = move != null && move.kill == null;
+		} while(ok);
 	}
 	
 	private void addKingMoves(Position position, List<Move> moves) {
@@ -433,7 +436,7 @@ public class Board {
 		addMoveIfSave(position, position.x+1, position.y-1, moves);
 	}
 	
-	private boolean addMoveIfSave(Position position, int targetX, int targetY, List<Move> moves) {
+	private Move addMoveIfSave(Position position, int targetX, int targetY, List<Move> moves) {
 		// TODO verify if safe from attack
 		return addMove(position, targetX, targetY, moves);
 	}
@@ -506,17 +509,18 @@ public class Board {
 		throw new IllegalArgumentException("Unknown side: " + side);
 	}
 
-	private boolean addMove(Position position, int targetX, int targetY, List<Move> moves) {
+	private Move addMove(Position position, int targetX, int targetY, List<Move> moves) {
 		if (targetX < 0 || targetX > 7 || targetY < 0 || targetY > 7) {
-			return false;
+			return null;
 		}
 		
 		Position target = getPosition(targetX, targetY);
 		if (target == null || target.side != position.side) {
-			moves.add(new Move(position, targetX, targetY, target));
-			return true;
+			Move move = new Move(position, targetX, targetY, target);
+			moves.add(move);
+			return move;
 		}
-		return false;
+		return null;
 	}
 
 	public void move(Move move) {

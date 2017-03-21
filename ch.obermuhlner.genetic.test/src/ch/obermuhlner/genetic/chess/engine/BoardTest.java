@@ -56,7 +56,35 @@ public class BoardTest {
 		assertMoves(blackToMove("pe2"), "e1", "e1", "e1", "e1"); // four conversions: NBRQ
 		assertMoves(blackToMove("pe2", "Pd1"), "e1", "e1", "e1", "e1", "d1", "d1", "d1", "d1"); // four conversions: NBRQ
 	}
-	
+
+	@Test
+	public void testKnightMoves() {
+		assertMoves(whiteToMove("Ne4"), "d6", "f6", "g5", "g3", "f2", "d2", "c3", "c5");
+		assertMoves(whiteToMove("Ne4", "Pd6"), "f6", "g5", "g3", "f2", "d2", "c3", "c5", // pawn blocks one move
+				"d7"); // pawn can also move
+		assertMoves(whiteToMove("Ne4", "pd6"), "d6", "f6", "g5", "g3", "f2", "d2", "c3", "c5"); // enemy pawn just taken
+	}
+
+	@Test
+	public void testBishopMoves() {
+		assertMoves(whiteToMove("Be4"),
+				"d3", "c2", "b1",
+				"f3", "g2", "h1",
+				"d5", "c6", "b7", "a8",
+				"f5", "g6", "h7");
+		assertMoves(whiteToMove("Be4", "Pc6"),
+				"d3", "c2", "b1",
+				"f3", "g2", "h1",
+				"d5", // this ray blocked by pawn
+				"f5", "g6", "h7"
+				, "c7"); // pawn can also move
+		assertMoves(whiteToMove("Be4", "pc6"),
+				"d3", "c2", "b1",
+				"f3", "g2", "h1",
+				"d5", "c6", // this ray blocked by pawn
+				"f5", "g6", "h7");
+	}
+
 	private List<Move> whiteToMove(String... positions) {
 		Board board = newBoard(Side.White, positions);
 		return board.getAllMoves();
