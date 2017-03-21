@@ -1,226 +1,430 @@
 package ch.obermuhlner.genetic.chess.engine;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
+import java.util.stream.Collectors;
 
 public class Board {
-	public enum Figure {
-		WhitePawn('P', 1),
-		WhiteKnight('N', 3),
-		WhiteBishop('B', 3),
-		WhiteRook('R', 4),
-		WhiteQueen('Q', 5),
-		WhiteKing('K', 6),
-		BlackPawn('p', 1),
-		BlackKnight('n', 3),
-		BlackBishop('b', 3),
-		BlackRook('r', 4),
-		BlackQueen('q', 5),
-		BlackKing('k', 6);
-		
-		private char character;
-		private double baseValue;
 
-		Figure(char character, double baseValue) {
-			this.character = character;
-			this.baseValue = baseValue;
+	public static class Position {
+		public Piece piece;
+		public int x;
+		public int y;
+		public boolean white;
+
+		public Position(Piece piece, int x, int y, boolean white) {
+			this.piece = piece;
+			this.x = x;
+			this.y = y;
+			this.white = white;
 		}
 		
-		public char getCharacter() {
-			return character;
+		public double getValue() {
+			return piece.getValue();
 		}
-	}
-	
-	public static final char BLACK_PAWN = 'p';
-	public static final char BLACK_KNIGHT = 'n';
-	public static final char BLACK_BISHOP = 'b';
-	public static final char BLACK_ROOK = 'r';
-	public static final char BLACK_QUEEN = 'q';
-	public static final char BLACK_KING = 'k';
 
-	public static final char WHITE_PAWN = 'P';
-	public static final char WHITE_KNIGHT = 'N';
-	public static final char WHITE_BISHOP = 'B';
-	public static final char WHITE_ROOK = 'R';
-	public static final char WHITE_QUEEN = 'Q';
-	public static final char WHITE_KING = 'K';
-	
-	private static final int PAWN_INDEX = 0;
-	private static final int KNIGHT_INDEX = 1;
-	private static final int BISHOP_INDEX = 2;
-	private static final int ROOK_INDEX = 3;
-	private static final int QUEEN_INDEX = 4;
-	private static final int KING_INDEX = 5;
-
-	private static final int START_INDEX = 0;
-	private static final int WHITE_START_INDEX = START_INDEX;
-	private static final int WHITE_END_INDEX = WHITE_START_INDEX + KING_INDEX + 1;
-	private static final int BLACK_START_INDEX = WHITE_END_INDEX;
-	private static final int BLACK_END_INDEX = BLACK_START_INDEX + KING_INDEX + 1;
-	private static final int END_INDEX = BLACK_START_INDEX + KING_INDEX + 1;
-
-	
-	public static final char[] BLACK_INITIAL_POSITION = {
-			Board.BLACK_ROOK,
-			Board.BLACK_KNIGHT,
-			Board.BLACK_BISHOP,
-			Board.BLACK_QUEEN,
-			Board.BLACK_KING,
-			Board.BLACK_BISHOP,
-			Board.BLACK_KNIGHT,
-			Board.BLACK_ROOK,
-
-			Board.BLACK_PAWN,
-			Board.BLACK_PAWN,
-			Board.BLACK_PAWN,
-			Board.BLACK_PAWN,
-			Board.BLACK_PAWN,
-			Board.BLACK_PAWN,
-			Board.BLACK_PAWN,
-			Board.BLACK_PAWN,
-	};
-	
-	private static final char[] WHITE_FIGURES = { WHITE_PAWN, WHITE_KNIGHT, WHITE_BISHOP, WHITE_ROOK, WHITE_QUEEN, WHITE_KING};
-	private static final char[] BLACK_FIGURES = { BLACK_PAWN, BLACK_KNIGHT, BLACK_BISHOP, BLACK_ROOK, BLACK_QUEEN, BLACK_KING};
-	private static final char[] ALL_FIGURES = {
-			WHITE_PAWN, WHITE_KNIGHT, WHITE_BISHOP, WHITE_ROOK, WHITE_QUEEN, WHITE_KING,
-			BLACK_PAWN, BLACK_KNIGHT, BLACK_BISHOP, BLACK_ROOK, BLACK_QUEEN, BLACK_KING};
-	private static final Set<Character> ALL_FIGURES_SET = new HashSet<>();
-	static {
-		for (int figureIndex = 0; figureIndex <= KING_INDEX; figureIndex++) {
-			ALL_FIGURES_SET.add(WHITE_FIGURES[figureIndex]);
-			ALL_FIGURES_SET.add(BLACK_FIGURES[figureIndex]);
-		}
-	}
-
-	private long[] figures = new long[END_INDEX];
-	
-	public boolean whiteToPlay;
-	
-	public void clear() {
-		for (int i = 0; i < END_INDEX; i++) {
-			figures[i] = 0;
-		}
-	}
-	
-	public void setFen(String fen) {
-		clear();
-		
-		int index = 0;
-		for (int i = 0; i < fen.length(); i++) {
-			char c = fen.charAt(i);
-			if (ALL_FIGURES_SET.contains(c)) {
-				addFigure(index, c);
-				index++;
-			} else if (c >= '1' && c <= '9') {
-				int emptyCount = Character.getNumericValue(c);
-				index += emptyCount;
-			} else if (c == '/') {
-				// ignore
-			} else if (c == ' ') {
-				return;
-			}
-		}
-	}
-
-	private void addFigure(int index, char c) {
-		long position = indexToLong(index);
-		switch (c) {
-		case WHITE_PAWN:
-			figures[WHITE_START_INDEX + PAWN_INDEX] |= position;
-			break;
-		case WHITE_BISHOP:
-			figures[WHITE_START_INDEX + BISHOP_INDEX] |= position;
-			break;
-		case WHITE_KNIGHT:
-			figures[WHITE_START_INDEX + KNIGHT_INDEX] |= position;
-			break;
-		case WHITE_ROOK:
-			figures[WHITE_START_INDEX + ROOK_INDEX] |= position;
-			break;
-		case WHITE_QUEEN:
-			figures[WHITE_START_INDEX + QUEEN_INDEX] |= position;
-			break;
-		case WHITE_KING:
-			figures[WHITE_START_INDEX + KING_INDEX] |= position;
-			break;
-		case BLACK_PAWN:
-			figures[BLACK_START_INDEX + PAWN_INDEX] |= position;
-			break;
-		case BLACK_BISHOP:
-			figures[BLACK_START_INDEX + BISHOP_INDEX] |= position;
-			break;
-		case BLACK_KNIGHT:
-			figures[BLACK_START_INDEX + KNIGHT_INDEX] |= position;
-			break;
-		case BLACK_ROOK:
-			figures[BLACK_START_INDEX + ROOK_INDEX] |= position;
-			break;
-		case BLACK_QUEEN:
-			figures[BLACK_START_INDEX + QUEEN_INDEX] |= position;
-			break;
-		case BLACK_KING:
-			figures[BLACK_START_INDEX + KING_INDEX] |= position;
-			break;
-		}
-	}
-
-	@Override
-	public String toString() {
-		return toFenString();
-	}
-	
-	private String toDebugString() {
-		StringBuilder result = new StringBuilder();
-		
-		for (int i = START_INDEX; i < END_INDEX; i++) {
-			result.append(ALL_FIGURES[i]);
-			result.append(" : ");
-			result.append(String.format("%016x", figures[i]));
-			result.append("\n");
-		}
-		
-		return result.toString();
-	}
-
-	public String toFenString() {
-		StringBuilder result = new StringBuilder();
-		
-		long allFigures = ArrayUtil.or(figures);
-
-		int emptyCount = 0;
-		for (int i = 0; i < 64; i++) {
-			long position = indexToLong(i);
-			if ((allFigures & position) == 0) {
-				emptyCount++;
-			} else {
-				if (emptyCount > 0) {
-					result.append(emptyCount);
-					emptyCount = 0;
-				}
-				for (int figureIndex = START_INDEX; figureIndex < END_INDEX; figureIndex++) {
-					if ((figures[figureIndex] & position) != 0) {
-						result.append(ALL_FIGURES[figureIndex]);
-					}
-				}
+		@Override
+		public String toString() {
+			char character = piece.getCharacter();
+			if (white) {
+				character = Character.toUpperCase(character);
 			}
 			
-			if ((i % 8) == 7) {
-				if (emptyCount > 0) {
-					result.append(emptyCount);
-					emptyCount = 0;
-				}
-				if (i != 63) {
-					result.append("/");
-				}
-			}
+			return String.valueOf(character) + toPositionString(x, y);
 		}
-		
-		return result.toString();
-	}
-
-	private long indexToLong(int index) {
-		return 1L << index;
 	}
 	
+	public static class Move {
+		Position source;
+		int targetX;
+		int targetY;
+		Position kill;
+		
+		public Move(Position source, int targetX, int targetY, Position kill) {
+			this.source = source;
+			this.targetX = targetX;
+			this.targetY = targetY;
+			this.kill = kill;
+		}
+		
+		public double getValue() {
+			if (kill != null) {
+				return kill.getValue();
+			}
+			return 0.1;
+		}
+
+		@Override
+		public String toString() {
+			StringBuilder result = new StringBuilder();
+			result.append(source);
+			result.append(toPositionString(targetX, targetY));
+			if (kill != null) {
+				result.append("x");
+				result.append(kill);
+			}
+			result.append("(");
+			result.append(getValue());
+			result.append(")");
+			
+			return result.toString();
+		}
+	}
+
+	private static final char[] LETTERS = { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h' };
+	
+	private final List<Position> positions = new ArrayList<>();
+	
+	private boolean whiteToMove = true;
+	
+	public void clear() {
+		positions.clear();
+	}
+	
+	public void setStartPosition() {
+		clear();
+		
+		positions.add(new Position(Piece.Rook, 0, 0, true));
+		positions.add(new Position(Piece.Knight, 1, 0, true));
+		positions.add(new Position(Piece.Bishop, 2, 0, true));
+		positions.add(new Position(Piece.Queen, 3, 0, true));
+		positions.add(new Position(Piece.King, 4, 0, true));
+		positions.add(new Position(Piece.Bishop, 5, 0, true));
+		positions.add(new Position(Piece.Knight, 6, 0, true));
+		positions.add(new Position(Piece.Rook, 7, 0, true));
+		
+		positions.add(new Position(Piece.Pawn, 0, 1, true));
+		positions.add(new Position(Piece.Pawn, 1, 1, true));
+		positions.add(new Position(Piece.Pawn, 2, 1, true));
+		positions.add(new Position(Piece.Pawn, 3, 1, true));
+		positions.add(new Position(Piece.Pawn, 4, 1, true));
+		positions.add(new Position(Piece.Pawn, 5, 1, true));
+		positions.add(new Position(Piece.Pawn, 6, 1, true));
+		positions.add(new Position(Piece.Pawn, 7, 1, true));
+		
+		
+		positions.add(new Position(Piece.Rook, 0, 7, false));
+		positions.add(new Position(Piece.Knight, 1, 7, false));
+		positions.add(new Position(Piece.Bishop, 2, 7, false));
+		positions.add(new Position(Piece.Queen, 3, 7, false));
+		positions.add(new Position(Piece.King, 4, 7, false));
+		positions.add(new Position(Piece.Bishop, 5, 7, false));
+		positions.add(new Position(Piece.Knight, 6, 7, false));
+		positions.add(new Position(Piece.Rook, 7, 7, false));
+		
+		positions.add(new Position(Piece.Pawn, 0, 6, false));
+		positions.add(new Position(Piece.Pawn, 1, 6, false));
+		positions.add(new Position(Piece.Pawn, 2, 6, false));
+		positions.add(new Position(Piece.Pawn, 3, 6, false));
+		positions.add(new Position(Piece.Pawn, 4, 6, false));
+		positions.add(new Position(Piece.Pawn, 5, 6, false));
+		positions.add(new Position(Piece.Pawn, 6, 6, false));
+		positions.add(new Position(Piece.Pawn, 7, 6, false));
+
+	}
+	
+	public boolean isWhiteToMove() {
+		return whiteToMove;
+	}
+	
+	public boolean isMate() {
+		// TODO
+		return false;
+	}
+	
+	public boolean isPatt() {
+		// TODO
+		return false;
+	}
+	
+	public boolean isCheck() {
+		// TODO
+		return false;
+	}
+	
+	public Position getPosition(int x, int y) {
+		return positions.stream()
+			.filter(position -> position.x == x && position.y == y)
+			.findFirst().orElse(null);
+	}
+	
+	public double getSideValue(boolean white) {
+		double value = positions.stream()
+				.filter(position -> position.white == white)
+				.mapToDouble(position -> position.getValue())
+				.sum();
+		
+		if (whiteToMove == white) {
+			value += 0.5;
+		}
+		
+		return value;
+	}
+	
+	public double getValue() {
+		return getSideValue(true) -getSideValue(false);
+	}
+	
+	public List<Move> getAllMoves() {
+		if (isMate() || isPatt()) {
+			return Collections.emptyList();
+		}
+		
+		if (isCheck()) {
+			return getAllMovesUnderCheck();
+		}
+		
+		return getAllMovesNormal();
+	}
+	
+	private List<Move> getAllMovesUnderCheck() {
+		List<Move> moves = new ArrayList<>();
+		
+		moves.addAll(positions.stream()
+			.filter(position -> position.white == whiteToMove)
+			.filter(position -> position.piece == Piece.King)
+			.flatMap(position -> getAllMoves(position).stream())
+			.collect(Collectors.toList()));
+		
+		// TODO find moves that kill checking piece
+		// TODO find moves that intercept checking move
+		
+		return moves;
+	}
+
+	private List<Move> getAllMovesNormal() {
+		List<Move> moves = new ArrayList<>();
+
+		moves.addAll(positions.stream()
+				.filter(position -> position.white == whiteToMove)
+				.filter(position -> !moveWillLeaveInCheck(position))
+				.flatMap(position -> getAllMoves(position).stream())
+				.collect(Collectors.toList()));
+
+		return moves;
+	}
+	
+	private boolean moveWillLeaveInCheck(Position position) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	private List<Move> getAllMoves(Position position) {
+		List<Move> moves = new ArrayList<>();
+
+		switch(position.piece) {
+		case Pawn:
+			addPawnMoves(position, moves);
+			break;
+		case Knight:
+			addKnightMoves(position, moves);
+			break;
+		case Bishop:
+			addBishopMoves(position, moves);
+			break;
+		case Rook:
+			addRookMoves(position, moves);
+			break;
+		case Queen:
+			addQueenMoves(position, moves);
+			break;
+		case King:
+			addKingMoves(position, moves);
+			break;
+		}
+
+		return moves;
+	}
+
+	private void addPawnMoves(Position position, List<Move> moves) {
+		int direction = position.white ? 1 : -1;
+		
+		if (addMoveIfFree(position, position.x, position.y + direction, moves) && isPawnStart(position)) {
+			addMoveIfFree(position, position.x, position.y + direction + direction, moves);
+		}
+		addMoveMustKill(position, position.x + 1, position.y + direction, moves);
+		addMoveMustKill(position, position.x - 1, position.y + direction, moves);
+		
+		// TODO add en-passant
+	}
+	
+	private void addKnightMoves(Position position, List<Move> moves) {
+		addMove(position, position.x-2, position.y+1, moves);
+		addMove(position, position.x-1, position.y+2, moves);
+		addMove(position, position.x+1, position.y+2, moves);
+		addMove(position, position.x+2, position.y+1, moves);
+		addMove(position, position.x+2, position.y-1, moves);
+		addMove(position, position.x+1, position.y-2, moves);
+		addMove(position, position.x-1, position.y-2, moves);
+		addMove(position, position.x-2, position.y-1, moves);
+	}
+
+	private void addRookMoves(Position position, List<Move> moves) {
+		addRayMoves(position, -1, 0, moves);
+		addRayMoves(position, +1, 0, moves);
+		addRayMoves(position, 0, -1, moves);
+		addRayMoves(position, 0, +1, moves);
+	}
+
+	private void addBishopMoves(Position position, List<Move> moves) {
+		addRayMoves(position, -1, -1, moves);
+		addRayMoves(position, +1, -1, moves);
+		addRayMoves(position, -1, +1, moves);
+		addRayMoves(position, +1, +1, moves);
+	}
+
+	private void addQueenMoves(Position position, List<Move> moves) {
+		addRayMoves(position, -1, 0, moves);
+		addRayMoves(position, +1, 0, moves);
+		addRayMoves(position, 0, -1, moves);
+		addRayMoves(position, 0, +1, moves);
+		
+		addRayMoves(position, -1, -1, moves);
+		addRayMoves(position, +1, -1, moves);
+		addRayMoves(position, -1, +1, moves);
+		addRayMoves(position, +1, +1, moves);
+	}
+
+	private void addRayMoves(Position position, int directionX, int directionY, List<Move> moves) {
+		int x = position.x;
+		int y = position.y;
+		
+		do {
+			x += directionX;
+			y += directionY;
+		} while(addMove(position, x, y, moves));
+	}
+	
+	private void addKingMoves(Position position, List<Move> moves) {
+		addMoveIfNoCheck(position, position.x-1, position.y-1, moves);
+		addMoveIfNoCheck(position, position.x-1, position.y+0, moves);
+		addMoveIfNoCheck(position, position.x-1, position.y+1, moves);
+		addMoveIfNoCheck(position, position.x+0, position.y-1, moves);
+		addMoveIfNoCheck(position, position.x+0, position.y+0, moves);
+		addMoveIfNoCheck(position, position.x+0, position.y+1, moves);
+		addMoveIfNoCheck(position, position.x+1, position.y-1, moves);
+		addMoveIfNoCheck(position, position.x+1, position.y+0, moves);
+		addMoveIfNoCheck(position, position.x+1, position.y-1, moves);
+	}
+	
+	private boolean isPawnStart(Position position) {
+		if (position.white) {
+			return position.y == 1;
+		} else {
+			return position.y == 6;
+		}
+	}
+
+	private boolean addMoveIfNoCheck(Position position, int targetX, int targetY, List<Move> moves) {
+		// TODO verify if check
+		return addMove(position, targetX, targetY, moves);
+	}
+	
+	private boolean addMoveIfFree(Position position, int targetX, int targetY, List<Move> moves) {
+		if (targetX < 0 || targetX > 7 || targetY < 0 || targetY > 7) {
+			return false;
+		}
+		
+		Position target = getPosition(targetX, targetY);
+		if (target == null) {
+			moves.add(new Move(position, targetX, targetY, target));
+			return true;
+		}
+		return false;
+	}
+
+	private boolean addMoveMustKill(Position position, int targetX, int targetY, List<Move> moves) {
+		if (targetX < 0 || targetX > 7 || targetY < 0 || targetY > 7) {
+			return false;
+		}
+		
+		Position target = getPosition(targetX, targetY);
+		if (target != null && target.white != position.white) {
+			moves.add(new Move(position, targetX, targetY, target));
+			return true;
+		}
+		return false;
+	}
+
+	private boolean addMove(Position position, int targetX, int targetY, List<Move> moves) {
+		if (targetX < 0 || targetX > 7 || targetY < 0 || targetY > 7) {
+			return false;
+		}
+		
+		Position target = getPosition(targetX, targetY);
+		if (target == null || target.white != position.white) {
+			moves.add(new Move(position, targetX, targetY, target));
+			return true;
+		}
+		return false;
+	}
+
+	public void move(Move move) {
+		positions.remove(move.source);
+		positions.remove(move.kill);
+		
+		Position newPosition = new Position(move.source.piece, move.targetX, move.targetY, move.source.white);
+		
+		positions.add(newPosition);
+		whiteToMove = false;
+	}
+	
+	public Board clone() {
+		Board board = new Board();
+		
+		board.positions.addAll(positions);
+		board.whiteToMove = whiteToMove;
+		
+		return board;
+	}
+	
+	public static String toPositionString(int x, int y) {
+		return String.valueOf(LETTERS[x]) + (y + 1);
+	}
+	
+	public static void main(String[] args) {
+		Random random = new Random(1234);
+		
+		Board board = new Board();
+		board.setStartPosition();
+
+		for (int i = 0; i < 100; i++) {
+			System.out.println("STEP " + i);
+			List<Move> allMoves = board.getAllMoves();
+			System.out.println("VALUE " + board.getValue());
+			System.out.println("ALL   " + allMoves);
+			
+			if (!allMoves.isEmpty()) {
+				Move move = randomMove(allMoves, random);
+				System.out.println("MOVE  " + move);
+				board.move(move);
+			}
+			System.out.println();
+		}
+	}
+	
+	private static Move randomMove(List<Move> allMoves, Random random) {
+		if (allMoves.isEmpty()) {
+			return null;
+		}
+		
+		double total = 0;
+		for (Move move : allMoves) {
+			total += move.getValue();
+		}
+		
+		double r = random.nextDouble() * total;
+		
+		total = 0;
+		for (Move move : allMoves) {
+			total += move.getValue();
+			if (r < total) {
+				return move;
+			}
+		}
+
+		return allMoves.get(allMoves.size() - 1);
+	}
 }
