@@ -29,19 +29,23 @@ public class Board {
 		public char getCharacter() {
 			return piece.getCharacter(side);
 		}
+		
+		public String getPositionString() {
+			return toPositionString(x, y);
+		}
 
 		@Override
 		public String toString() {
-			return String.valueOf(getCharacter()) + toPositionString(x, y);
+			return String.valueOf(getCharacter()) + getPositionString();
 		}
 	}
 	
 	public static class Move {
-		Position source;
-		int targetX;
-		int targetY;
-		Position kill;
-		Piece convert;
+		private Position source;
+		private int targetX;
+		private int targetY;
+		private Position kill;
+		private Piece convert;
 		
 		public Move(Position source, int targetX, int targetY, Position kill) {
 			this(source, targetX, targetY, kill, null);
@@ -53,6 +57,14 @@ public class Board {
 			this.targetY = targetY;
 			this.kill = kill;
 			this.convert = convert;
+		}
+		
+		public Position getSource() {
+			return source;
+		}
+		
+		public String getTargetPositionString() {
+			return toPositionString(targetX, targetY);
 		}
 		
 		public double getValue() {
@@ -190,6 +202,39 @@ public class Board {
 		return null;
 	}
 
+	public void addPosition(String position) {
+		char character = position.charAt(0);
+		
+		for (Piece piece : Piece.values()) {
+			if (piece.getWhiteCharacter() == character) {
+				addPosition(piece, Side.White, position.substring(1));
+				return;
+			}
+			if (piece.getBlackCharacter() == character) {
+				addPosition(piece, Side.Black, position.substring(1));
+				return;
+			}
+		}
+		
+		throw new IllegalArgumentException("Unknown position: " + position);
+	}
+	
+	public void addPosition(Piece piece, Side side, String position) {
+		int x = letterToInt(position.charAt(0));
+		int y = Character.getNumericValue(position.charAt(1)) - 1;
+		addPosition(piece, side, x, y);
+	}
+	
+	private static int letterToInt(char letter) {
+		for (int i = 0; i < LETTERS.length; i++) {
+			if (letter == LETTERS[i]) {
+				return i;
+			}
+		}
+		
+		throw new IllegalArgumentException("Unknown chess position letter: " + letter);
+	}
+	
 	public void addPosition(Piece piece, Side side, int x, int y) {
 		positions.add(new Position(piece, side, x, y));
 		analyzePosition();
