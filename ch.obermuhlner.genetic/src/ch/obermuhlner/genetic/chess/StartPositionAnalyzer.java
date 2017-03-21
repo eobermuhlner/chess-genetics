@@ -6,8 +6,10 @@ import ch.obermuhlner.genetic.GenomeFactory;
 import ch.obermuhlner.genetic.GenomeMutator;
 import ch.obermuhlner.genetic.util.AverageGenomeEvaluator;
 
+// http://webchess.freehostia.com/diag/chessdiag.php?fen=rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR%20w&size=medium&coord=no&cap=no&stm=no&fb=no&theme=smart&format=auto&color1=f5d08c&color2=bf704b&color3=000000
 public class StartPositionAnalyzer {
 
+	
 	private static final StartPosition KNOWN_START_POSITIONS[] = {
 			new StartPosition("6k1/rr1q2p1/2bnnpbp/2ppppp1"),
 			
@@ -16,11 +18,11 @@ public class StartPositionAnalyzer {
 	public static void main(String[] args) {
 		//analyzeFrontLeft();
 		//analyzeStockfishEvalFast();
-		analyzeStockfishEvalSlow();
+		//analyzeStockfishEvalSlow();
 		//analyzeStockfishPlayFastest();
 		//analyzeStockfishPlayFast();
 		//analyzeStockfishPlaySlow();
-		//analyzeStockfishPlaySlowest();
+		analyzeStockfishPlaySlowest();
 		//analyzeStockfishPlayUltraSlow();
 		//analyzeStockfishPlayUltraSlowest();
 	}
