@@ -225,6 +225,11 @@ public class Board {
 		addPosition(piece, side, x, y);
 	}
 	
+	public void setSideToMove(Side sideToMove) {
+		this.sideToMove = sideToMove;
+		analyzePosition();
+	}
+	
 	private static int letterToInt(char letter) {
 		for (int i = 0; i < LETTERS.length; i++) {
 			if (letter == LETTERS[i]) {

@@ -26,32 +26,56 @@ public class BoardTest {
 	}
 	
 	@Test
-	public void testPawnMoves1() {
-		assertMoves(boardMoves("Pe2"), "e3", "e4"); // double move
-		assertMoves(boardMoves("Pe3"), "e4"); // single move
-		assertMoves(boardMoves("Pe3", "pd4", "pf4"), "e4", "d4", "f4"); // kill left and right
-		assertMoves(boardMoves("Pa3", "pb4"), "a4", "b4"); // left side of board, kill right
-		assertMoves(boardMoves("Ph3", "pg4"), "h4", "g4"); // right side of board, kill left
-		assertMoves(boardMoves("Pe3", "pe4")); // blocked pawn
+	public void testWhitePawnMoves1() {
+		assertMoves(whiteToMove("Pe2"), "e3", "e4"); // double move
+		assertMoves(whiteToMove("Pe3"), "e4"); // single move
+		assertMoves(whiteToMove("Pe3", "pd4", "pf4"), "e4", "d4", "f4"); // kill left and right
+		assertMoves(whiteToMove("Pa3", "pb4"), "a4", "b4"); // left side of board, kill right
+		assertMoves(whiteToMove("Ph3", "pg4"), "h4", "g4"); // right side of board, kill left
+		assertMoves(whiteToMove("Pe3", "pe4")); // blocked pawn
 	}
 
 	@Test
-	public void testPawnMoves2() {
-		assertMoves(boardMoves("Pe7"), "e8", "e8", "e8", "e8"); // four conversions: NBRQ
-		assertMoves(boardMoves("Pe7", "pd8"), "e8", "e8", "e8", "e8", "d8", "d8", "d8", "d8"); // four conversions: NBRQ
+	public void testWhitePawnMoves2() {
+		assertMoves(whiteToMove("Pe7"), "e8", "e8", "e8", "e8"); // four conversions: NBRQ
+		assertMoves(whiteToMove("Pe7", "pd8"), "e8", "e8", "e8", "e8", "d8", "d8", "d8", "d8"); // four conversions: NBRQ
 	}
 	
-	private List<Move> boardMoves(String... positions) {
-		return newBoard(positions).getAllMoves();
+	@Test
+	public void testBlackPawnMoves1() {
+		assertMoves(blackToMove("pe7"), "e6", "e5"); // double move
+		assertMoves(blackToMove("pe6"), "e5"); // single move
+		assertMoves(blackToMove("pe6", "Pd5", "Pf5"), "e5", "d5", "f5"); // kill left and right
+		assertMoves(blackToMove("pa6", "Pb5"), "a5", "b5"); // left side of board, kill right
+		assertMoves(blackToMove("ph6", "Pg5"), "h5", "g5"); // right side of board, kill left
+		assertMoves(blackToMove("pe6", "Pe5")); // blocked pawn
+	}
+
+	@Test
+	public void testBlackPawnMoves2() {
+		assertMoves(blackToMove("pe2"), "e1", "e1", "e1", "e1"); // four conversions: NBRQ
+		assertMoves(blackToMove("pe2", "Pd1"), "e1", "e1", "e1", "e1", "d1", "d1", "d1", "d1"); // four conversions: NBRQ
 	}
 	
-	private Board newBoard(String... positions) {
+	private List<Move> whiteToMove(String... positions) {
+		Board board = newBoard(Side.White, positions);
+		return board.getAllMoves();
+	}
+
+	private List<Move> blackToMove(String... positions) {
+		Board board = newBoard(Side.Black, positions);
+		return board.getAllMoves();
+	}
+
+	private Board newBoard(Side sideToMove, String... positions) {
 		Board board = new Board();
 		board.clear();
 		
 		for (String position : positions) {
 			board.addPosition(position);
 		}
+		
+		board.setSideToMove(sideToMove);
 		
 		return board;
 	}
