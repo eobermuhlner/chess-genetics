@@ -96,11 +96,19 @@ public class Board {
 		}
 	}
 	
+	private static class Analysis {
+		private Map<Position, List<Move>> positionMovesMap = new HashMap<>();
+		private Map<Position, List<Position>> positionAttacksMap = new HashMap<>();
+		private Map<Position, List<Position>> positionDefendsMap = new HashMap<>();
+	}
+	
 	private static final char[] LETTERS = { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h' };
 	
 	private final List<Position> positions = new ArrayList<>();
 	
 	private Side sideToMove = Side.White;
+	
+	private Analysis analysis;
 	
 	public Board() {
 		setStartPosition();
@@ -150,7 +158,7 @@ public class Board {
 		positions.add(new Position(Piece.Pawn, Side.Black, 6, 6));
 		positions.add(new Position(Piece.Pawn, Side.Black, 7, 6));
 		
-		analyzePosition();
+		invalidateAnalysis();
 	}
 
 	public void setFenString(String fen) {
@@ -158,7 +166,7 @@ public class Board {
 		
 		clear();
 		positions.addAll(fenPositions);
-		analyzePosition();
+		invalidateAnalysis();
 	}
 
 	private static List<Position> toFenPositions(String fen) {
@@ -225,7 +233,7 @@ public class Board {
 	
 	public void setSideToMove(Side sideToMove) {
 		this.sideToMove = sideToMove;
-		analyzePosition();
+		invalidateAnalysis();
 	}
 	
 	private static int letterToInt(char letter) {
@@ -240,17 +248,26 @@ public class Board {
 	
 	public void addPosition(Piece piece, Side side, int x, int y) {
 		positions.add(new Position(piece, side, x, y));
-		analyzePosition();
+		invalidateAnalysis();
 	}
 	
-	private Map<Position, List<Move>> positionMovesMap = new HashMap<>();
-	private Map<Position, List<Position>> positionAttacksMap = new HashMap<>();
-	private Map<Position, List<Position>> positionDefendsMap = new HashMap<>();
-	
-	private void analyzePosition() {
-		positionMovesMap.clear();
-		positionAttacksMap.clear();
-		positionDefendsMap.clear();
+	private void invalidateAnalysis() {
+		analysis = null;		
+	}
+
+	private Analysis getAnalysis() {
+		if (analysis == null) {
+			analysis = createAnalysis();
+		}
+		
+		return analysis;
+	}
+		
+	private Analysis createAnalysis() {
+		Analysis analysis = new Analysis();
+		analysis.positionMovesMap.clear();
+		analysis.positionAttacksMap.clear();
+		analysis.positionDefendsMap.clear();
 		
 		for (Position position : positions) {
 			List<Move> moves = new ArrayList<>();
@@ -259,10 +276,12 @@ public class Board {
 			
 			addAllMoves(position, moves, attacks, defends);
 			
-			positionMovesMap.put(position, moves);
-			positionAttacksMap.put(position, attacks);
-			positionDefendsMap.put(position, defends);
+			analysis.positionMovesMap.put(position, moves);
+			analysis.positionAttacksMap.put(position, attacks);
+			analysis.positionDefendsMap.put(position, defends);
 		}
+		
+		return analysis;
 	}
 
 	public Side getSideToMove() {
@@ -320,15 +339,26 @@ public class Board {
 		case Bishop:
 		case Rook:
 		case Queen:
-			value *= 0.9 + getMobility(position) * 0.1;
+			value *= 0.9 + getMobilityFactor(position) * 0.1;
 			break;
 		}
+		
+		value *= 0.9 + getAttacksFactor(position) * 0.2;
+		value *= 0.9 + getDefendsFactor(position) * 0.15;
 		
 		return value;
 	}
 	
-	double getMobility(Position position) {
+	private double getMobilityFactor(Position position) {
 		return (double) getAllMoves(position).size() / position.piece.getMaxMoves();
+	}
+
+	private double getAttacksFactor(Position position) {
+		return (double) getAllAttacks(position).size() / position.piece.getMaxAttacks();
+	}
+
+	private double getDefendsFactor(Position position) {
+		return (double) getAllDefends(position).size() / position.piece.getMaxAttacks();
 	}
 
 	public List<Move> getAllMoves() {
@@ -376,7 +406,15 @@ public class Board {
 	}
 
 	private List<Move> getAllMoves(Position position) {
-		return positionMovesMap.get(position);
+		return getAnalysis().positionMovesMap.get(position);
+	}
+
+	private List<Position> getAllAttacks(Position position) {
+		return getAnalysis().positionAttacksMap.get(position);
+	}
+
+	private List<Position> getAllDefends(Position position) {
+		return getAnalysis().positionDefendsMap.get(position);
 	}
 
 	private void addAllMoves(Position position, List<Move> moves, List<Position> attacks, List<Position> defends) {
@@ -599,7 +637,7 @@ public class Board {
 		positions.add(newPosition);
 		sideToMove = sideToMove.otherSide();
 		
-		analyzePosition();
+		invalidateAnalysis();
 	}
 	
 	public Board clone() {

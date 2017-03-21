@@ -26,8 +26,8 @@ public class StartPositionAnalyzer {
 		//analyzeStockfishPlayUltraSlow();
 		//analyzeStockfishPlayUltraSlowest();
 		
-		analyzeEvalMonteCarloChessEngine();
-		//analyzePlayMonteCarloChessEngine();
+		//analyzeEvalMonteCarloChessEngine();
+		analyzePlayMonteCarloChessEngine();
 	}
 
 	public static void analyzeFrontLeft() {
@@ -202,8 +202,8 @@ public class StartPositionAnalyzer {
 		Genetic<StartPosition> genetic = new Genetic<StartPosition>(factory, evaluator, mutator);
 		//injectStartPositions(genetic, KNOWN_START_POSITIONS);
 
-		genetic.setPopulationCount(100);
-		genetic.setEvaluationCount(10);
+		genetic.setPopulationCount(10);
+		genetic.setEvaluationCount(1);
 		genetic.run();
 	}
 
