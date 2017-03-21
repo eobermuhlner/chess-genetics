@@ -3,7 +3,9 @@ package ch.obermuhlner.genetic.chess.engine;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.stream.Collectors;
 
@@ -93,7 +95,7 @@ public class Board {
 			return result.toString();
 		}
 	}
-
+	
 	private static final char[] LETTERS = { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h' };
 	
 	private final List<Position> positions = new ArrayList<>();
@@ -241,8 +243,26 @@ public class Board {
 		analyzePosition();
 	}
 	
+	private Map<Position, List<Move>> positionMovesMap = new HashMap<>();
+	private Map<Position, List<Position>> positionAttacksMap = new HashMap<>();
+	private Map<Position, List<Position>> positionDefendsMap = new HashMap<>();
+	
 	private void analyzePosition() {
+		positionMovesMap.clear();
+		positionAttacksMap.clear();
+		positionDefendsMap.clear();
 		
+		for (Position position : positions) {
+			List<Move> moves = new ArrayList<>();
+			List<Position> attacks = new ArrayList<>();
+			List<Position> defends = new ArrayList<>();
+			
+			addAllMoves(position, moves, attacks, defends);
+			
+			positionMovesMap.put(position, moves);
+			positionAttacksMap.put(position, attacks);
+			positionDefendsMap.put(position, defends);
+		}
 	}
 
 	public Side getSideToMove() {
@@ -292,7 +312,7 @@ public class Board {
 		
 		switch(position.piece) {
 		case Pawn:
-			value *= (0.9 + getPawnLine(position) * 0.1);
+			value *= 0.9 + getPawnLine(position) * 0.2;
 			break;
 		case King:
 			break;
@@ -300,7 +320,7 @@ public class Board {
 		case Bishop:
 		case Rook:
 		case Queen:
-			value *= 0.5 + getMobility(position);
+			value *= 0.9 + getMobility(position) * 0.1;
 			break;
 		}
 		
@@ -308,7 +328,7 @@ public class Board {
 	}
 	
 	double getMobility(Position position) {
-		return getAllMoves(position).size() / position.piece.getMaxMoves();
+		return (double) getAllMoves(position).size() / position.piece.getMaxMoves();
 	}
 
 	public List<Move> getAllMoves() {
@@ -356,82 +376,82 @@ public class Board {
 	}
 
 	private List<Move> getAllMoves(Position position) {
-		List<Move> moves = new ArrayList<>();
-
-		switch(position.piece) {
-		case Pawn:
-			addPawnMoves(position, moves);
-			break;
-		case Knight:
-			addKnightMoves(position, moves);
-			break;
-		case Bishop:
-			addBishopMoves(position, moves);
-			break;
-		case Rook:
-			addRookMoves(position, moves);
-			break;
-		case Queen:
-			addQueenMoves(position, moves);
-			break;
-		case King:
-			addKingMoves(position, moves);
-			break;
-		}
-
-		return moves;
+		return positionMovesMap.get(position);
 	}
 
-	private void addPawnMoves(Position position, List<Move> moves) {
+	private void addAllMoves(Position position, List<Move> moves, List<Position> attacks, List<Position> defends) {
+		switch(position.piece) {
+		case Pawn:
+			addPawnMoves(position, moves, attacks, defends);
+			break;
+		case Knight:
+			addKnightMoves(position, moves, attacks, defends);
+			break;
+		case Bishop:
+			addBishopMoves(position, moves, attacks, defends);
+			break;
+		case Rook:
+			addRookMoves(position, moves, attacks, defends);
+			break;
+		case Queen:
+			addQueenMoves(position, moves, attacks, defends);
+			break;
+		case King:
+			addKingMoves(position, moves, attacks, defends);
+			break;
+		}
+	}
+
+	private void addPawnMoves(Position position, List<Move> moves, List<Position> attacks, List<Position> defends) {
 		int direction = getPawnDirection(position.side);
 		
-		if (addMovePawnIfFree(position, position.x, position.y + direction, moves) && position.y == getPawnStart(position.side)) {
-			addMovePawnIfFree(position, position.x, position.y + direction + direction, moves);
+		if (addMovePawnIfFree(position, position.x, position.y + direction, moves, attacks, defends) && position.y == getPawnStart(position.side)) {
+			addMovePawnIfFree(position, position.x, position.y + direction + direction, moves, attacks, defends);
 		}
-		addMovePawnMustKill(position, position.x + 1, position.y + direction, moves);
-		addMovePawnMustKill(position, position.x - 1, position.y + direction, moves);
+		addMovePawnMustKill(position, position.x + 1, position.y + direction, moves, attacks, defends);
+		addMovePawnMustKill(position, position.x - 1, position.y + direction, moves, attacks, defends);
 		
 		// TODO add en-passant
 	}
 	
-	private void addKnightMoves(Position position, List<Move> moves) {
-		addMove(position, position.x-2, position.y+1, moves);
-		addMove(position, position.x-1, position.y+2, moves);
-		addMove(position, position.x+1, position.y+2, moves);
-		addMove(position, position.x+2, position.y+1, moves);
-		addMove(position, position.x+2, position.y-1, moves);
-		addMove(position, position.x+1, position.y-2, moves);
-		addMove(position, position.x-1, position.y-2, moves);
-		addMove(position, position.x-2, position.y-1, moves);
+	private void addKnightMoves(Position position, List<Move> moves, List<Position> attacks, List<Position> defends) {
+		addMove(position, position.x-2, position.y+1, moves, attacks, defends);
+		addMove(position, position.x-1, position.y+2, moves, attacks, defends);
+		addMove(position, position.x+1, position.y+2, moves, attacks, defends);
+		addMove(position, position.x+2, position.y+1, moves, attacks, defends);
+		addMove(position, position.x+2, position.y-1, moves, attacks, defends);
+		addMove(position, position.x+1, position.y-2, moves, attacks, defends);
+		addMove(position, position.x-1, position.y-2, moves, attacks, defends);
+		addMove(position, position.x-2, position.y-1, moves, attacks, defends);
 	}
 
-	private void addBishopMoves(Position position, List<Move> moves) {
-		addRayMoves(position, -1, -1, moves);
-		addRayMoves(position, +1, -1, moves);
-		addRayMoves(position, -1, +1, moves);
-		addRayMoves(position, +1, +1, moves);
+	private void addBishopMoves(Position position, List<Move> moves, List<Position> attacks, List<Position> defends) {
+		addRayMoves(position, -1, -1, moves, attacks, defends);
+		addRayMoves(position, +1, -1, moves, attacks, defends);
+		addRayMoves(position, -1, +1, moves, attacks, defends);
+		addRayMoves(position, +1, +1, moves, attacks, defends);
 	}
 
-	private void addRookMoves(Position position, List<Move> moves) {
-		addRayMoves(position, -1, 0, moves);
-		addRayMoves(position, +1, 0, moves);
-		addRayMoves(position, 0, -1, moves);
-		addRayMoves(position, 0, +1, moves);
+	private void addRookMoves(Position position, List<Move> moves, List<Position> attacks, List<Position> defends) {
+		addRayMoves(position, -1, 0, moves, attacks, defends);
+		addRayMoves(position, +1, 0, moves, attacks, defends);
+		addRayMoves(position, 0, -1, moves, attacks, defends);
+		addRayMoves(position, 0, +1, moves, attacks, defends);
 	}
 
-	private void addQueenMoves(Position position, List<Move> moves) {
-		addRayMoves(position, -1, 0, moves);
-		addRayMoves(position, +1, 0, moves);
-		addRayMoves(position, 0, -1, moves);
-		addRayMoves(position, 0, +1, moves);
+	private void addQueenMoves(Position position, List<Move> moves, List<Position> attacks, List<Position> defends) {
+		addRayMoves(position, -1, 0, moves, attacks, defends);
+		addRayMoves(position, +1, 0, moves, attacks, defends);
+		addRayMoves(position, 0, -1, moves, attacks, defends);
+		addRayMoves(position, 0, +1, moves, attacks, defends);
 		
-		addRayMoves(position, -1, -1, moves);
-		addRayMoves(position, +1, -1, moves);
-		addRayMoves(position, -1, +1, moves);
-		addRayMoves(position, +1, +1, moves);
+		addRayMoves(position, -1, -1, moves, attacks, defends);
+		addRayMoves(position, +1, -1, moves, attacks, defends);
+		addRayMoves(position, -1, +1, moves, attacks, defends);
+		addRayMoves(position, +1, +1, moves, attacks, defends);
 	}
 
-	private void addRayMoves(Position position, int directionX, int directionY, List<Move> moves) {
+	private void addRayMoves(Position position, int directionX, int directionY, List<Move> moves, List<Position> attacks, List<Position> defends) {
 		int x = position.x;
 		int y = position.y;
 		
@@ -439,29 +459,29 @@ public class Board {
 		do {
 			x += directionX;
 			y += directionY;
-			Move move = addMove(position, x, y, moves);
+			Move move = addMove(position, x, y, moves, attacks, defends);
 			ok = move != null && move.kill == null;
 		} while(ok);
 	}
 	
-	private void addKingMoves(Position position, List<Move> moves) {
-		addMoveIfSave(position, position.x-1, position.y-1, moves);
-		addMoveIfSave(position, position.x-1, position.y+0, moves);
-		addMoveIfSave(position, position.x-1, position.y+1, moves);
-		addMoveIfSave(position, position.x+0, position.y-1, moves);
-		addMoveIfSave(position, position.x+0, position.y+0, moves);
-		addMoveIfSave(position, position.x+0, position.y+1, moves);
-		addMoveIfSave(position, position.x+1, position.y-1, moves);
-		addMoveIfSave(position, position.x+1, position.y+0, moves);
-		addMoveIfSave(position, position.x+1, position.y-1, moves);
+	private void addKingMoves(Position position, List<Move> moves, List<Position> attacks, List<Position> defends) {
+		addMoveIfSave(position, position.x-1, position.y-1, moves, attacks, defends);
+		addMoveIfSave(position, position.x-1, position.y+0, moves, attacks, defends);
+		addMoveIfSave(position, position.x-1, position.y+1, moves, attacks, defends);
+		addMoveIfSave(position, position.x+0, position.y-1, moves, attacks, defends);
+		addMoveIfSave(position, position.x+0, position.y+0, moves, attacks, defends);
+		addMoveIfSave(position, position.x+0, position.y+1, moves, attacks, defends);
+		addMoveIfSave(position, position.x+1, position.y-1, moves, attacks, defends);
+		addMoveIfSave(position, position.x+1, position.y+0, moves, attacks, defends);
+		addMoveIfSave(position, position.x+1, position.y-1, moves, attacks, defends);
 	}
 	
-	private Move addMoveIfSave(Position position, int targetX, int targetY, List<Move> moves) {
+	private Move addMoveIfSave(Position position, int targetX, int targetY, List<Move> moves, List<Position> attacks, List<Position> defends) {
 		// TODO verify if safe from attack
-		return addMove(position, targetX, targetY, moves);
+		return addMove(position, targetX, targetY, moves, attacks, defends);
 	}
 	
-	private boolean addMovePawnIfFree(Position position, int targetX, int targetY, List<Move> moves) {
+	private boolean addMovePawnIfFree(Position position, int targetX, int targetY, List<Move> moves, List<Position> attacks, List<Position> defends) {
 		if (targetX < 0 || targetX > 7 || targetY < 0 || targetY > 7) {
 			return false;
 		}
@@ -473,26 +493,33 @@ public class Board {
 					moves.add(new Move(position, targetX, targetY, target, convert));
 				}
 			} else {
-				moves.add(new Move(position, targetX, targetY, target));
+				Move move = new Move(position, targetX, targetY, target);
+				moves.add(move);
 			}
 			return true;
 		}
 		return false;
 	}
 
-	private boolean addMovePawnMustKill(Position position, int targetX, int targetY, List<Move> moves) {
+	private boolean addMovePawnMustKill(Position position, int targetX, int targetY, List<Move> moves, List<Position> attacks, List<Position> defends) {
 		if (targetX < 0 || targetX > 7 || targetY < 0 || targetY > 7) {
 			return false;
 		}
 		
 		Position target = getPosition(targetX, targetY);
-		if (target != null && target.side != position.side) {
-			if (targetY == getLastRow(position.side)) {
-				for (Piece convert : Arrays.asList(Piece.Knight, Piece.Bishop, Piece.Rook, Piece.Queen)) {
-					moves.add(new Move(position, targetX, targetY, target, convert));
+		if (target != null) {
+			if (target.side != position.side) {
+				if (targetY == getLastRow(position.side)) {
+					for (Piece convert : Arrays.asList(Piece.Knight, Piece.Bishop, Piece.Rook, Piece.Queen)) {
+						moves.add(new Move(position, targetX, targetY, target, convert));
+						attacks.add(target);
+					}
+				} else {
+					moves.add(new Move(position, targetX, targetY, target));
+					attacks.add(target);
 				}
 			} else {
-				moves.add(new Move(position, targetX, targetY, target));
+				defends.add(target);
 			}
 			return true;
 		}
@@ -539,18 +566,27 @@ public class Board {
 		throw new IllegalArgumentException("Unknown side: " + side);
 	}
 
-	private Move addMove(Position position, int targetX, int targetY, List<Move> moves) {
+	private Move addMove(Position position, int targetX, int targetY, List<Move> moves, List<Position> attacks, List<Position> defends) {
 		if (targetX < 0 || targetX > 7 || targetY < 0 || targetY > 7) {
 			return null;
 		}
 		
+		Move move = null;
 		Position target = getPosition(targetX, targetY);
-		if (target == null || target.side != position.side) {
-			Move move = new Move(position, targetX, targetY, target);
+		if (target == null) {
+			move = new Move(position, targetX, targetY, target);
 			moves.add(move);
-			return move;
+		} else {
+			if (target.side != position.side) {
+				move = new Move(position, targetX, targetY, target);
+				moves.add(move);
+				attacks.add(target);
+			} else {
+				defends.add(target);
+			}
 		}
-		return null;
+
+		return move;
 	}
 
 	public void move(Move move) {
