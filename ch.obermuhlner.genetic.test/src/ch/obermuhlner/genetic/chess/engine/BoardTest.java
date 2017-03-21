@@ -75,16 +75,36 @@ public class BoardTest {
 		assertMoves(whiteToMove("Be4", "Pc6"),
 				"d3", "c2", "b1",
 				"f3", "g2", "h1",
-				"d5", // this ray blocked by pawn
+				"d5", // this ray blocked by own pawn
 				"f5", "g6", "h7"
 				, "c7"); // pawn can also move
 		assertMoves(whiteToMove("Be4", "pc6"),
 				"d3", "c2", "b1",
 				"f3", "g2", "h1",
-				"d5", "c6", // this ray blocked by pawn
+				"d5", "c6", // this ray blocked by enemy pawn
 				"f5", "g6", "h7");
 	}
 
+	@Test
+	public void testRookMoves() {
+		assertMoves(whiteToMove("Re4"),
+				"f4", "g4", "h4", 
+				"e5", "e6", "e7", "e8", 
+				"e3", "e2", "e1", 
+				"d4", "c4", "b4", "a4");
+		assertMoves(whiteToMove("Re4", "Pc4"),
+				"f4", "g4", "h4", 
+				"e5", "e6", "e7", "e8", 
+				"e3", "e2", "e1",
+				"d4", // this ray blocked by own pawn
+				"c5"); // pawn can also move
+		assertMoves(whiteToMove("Re4", "pd4"),
+				"f4", "g4", "h4", 
+				"e5", "e6", "e7", "e8", 
+				"e3", "e2", "e1",
+				"d4"); // this ray blocked by enemy pawn
+	}
+	
 	private List<Move> whiteToMove(String... positions) {
 		Board board = newBoard(Side.White, positions);
 		return board.getAllMoves();
