@@ -22,10 +22,6 @@ public class Board {
 			this.side = side;
 		}
 		
-		public double getValue() {
-			return piece.getValue();
-		}
-		
 		public char getCharacter() {
 			return piece.getCharacter(side);
 		}
@@ -69,7 +65,7 @@ public class Board {
 		
 		public double getValue() {
 			if (kill != null) {
-				return kill.getValue();
+				return kill.piece.getValue();
 			}
 			if (convert != null) {
 				return convert.getValue();
@@ -274,10 +270,14 @@ public class Board {
 			.findFirst().orElse(null);
 	}
 	
+	public double getValue() {
+		return getSideValue(Side.White) - getSideValue(Side.Black);
+	}
+	
 	public double getSideValue(Side side) {
 		double value = positions.stream()
 				.filter(position -> position.side == side)
-				.mapToDouble(position -> position.getValue())
+				.mapToDouble(position -> getValue(position))
 				.sum();
 		
 		if (sideToMove == side) {
@@ -287,10 +287,30 @@ public class Board {
 		return value;
 	}
 	
-	public double getValue() {
-		return getSideValue(Side.White) - getSideValue(Side.Black);
+	private double getValue(Position position) {
+		double value = position.piece.getValue();
+		
+		switch(position.piece) {
+		case Pawn:
+			value *= (0.9 + getPawnLine(position) * 0.1);
+			break;
+		case King:
+			break;
+		case Knight:
+		case Bishop:
+		case Rook:
+		case Queen:
+			value *= 0.5 + getMobility(position);
+			break;
+		}
+		
+		return value;
 	}
 	
+	double getMobility(Position position) {
+		return getAllMoves(position).size() / position.piece.getMaxMoves();
+	}
+
 	public List<Move> getAllMoves() {
 		if (isMate() || isPatt()) {
 			return Collections.emptyList();
@@ -477,6 +497,16 @@ public class Board {
 			return true;
 		}
 		return false;
+	}
+
+	private static int getPawnLine(Position position) {
+		switch(position.side) {
+		case White:
+			return position.y;
+		case Black:
+			return 7 - position.y;
+		}
+		throw new IllegalArgumentException("Unknown side: " + position.side);
 	}
 
 	private static int getPawnDirection(Side side) {
