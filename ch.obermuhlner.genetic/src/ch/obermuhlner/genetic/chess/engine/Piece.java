@@ -17,10 +17,14 @@ public enum Piece {
 		this.value = value;
 	}
 	
-	public char getCharacter() {
+	public char getBlackCharacter() {
 		return character;
 	}
-	
+
+	public char getWhiteCharacter() {
+		return Character.toUpperCase(character);
+	}
+
 	public double getValue() {
 		return value;
 	}

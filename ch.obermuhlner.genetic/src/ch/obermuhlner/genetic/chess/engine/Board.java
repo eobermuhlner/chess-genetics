@@ -24,15 +24,14 @@ public class Board {
 		public double getValue() {
 			return piece.getValue();
 		}
+		
+		public char getCharacter() {
+			return white ? piece.getWhiteCharacter() : piece.getBlackCharacter();
+		}
 
 		@Override
 		public String toString() {
-			char character = piece.getCharacter();
-			if (white) {
-				character = Character.toUpperCase(character);
-			}
-			
-			return String.valueOf(character) + toPositionString(x, y);
+			return String.valueOf(getCharacter()) + toPositionString(x, y);
 		}
 	}
 	
@@ -79,6 +78,10 @@ public class Board {
 	
 	private boolean whiteToMove = true;
 	
+	public Board() {
+		setStartPosition();
+	}
+	
 	public void clear() {
 		positions.clear();
 	}
@@ -122,9 +125,60 @@ public class Board {
 		positions.add(new Position(Piece.Pawn, 5, 6, false));
 		positions.add(new Position(Piece.Pawn, 6, 6, false));
 		positions.add(new Position(Piece.Pawn, 7, 6, false));
+		
+		analyzePosition();
+	}
 
+	public void setFenString(String fen) {
+		List<Position> fenPositions = toFenPositions(fen);
+		
+		clear();
+		positions.addAll(fenPositions);
+		analyzePosition();
+	}
+
+	private static List<Position> toFenPositions(String fen) {
+		List<Position> fenPositions = new ArrayList<>();
+		
+		int index = 0;
+		for (int i = 0; i < fen.length(); i++) {
+			char c = fen.charAt(i);
+			Position position = toPosition(c, index);
+			if (position != null) {
+				fenPositions.add(position);
+				index++;
+			} else if (c >= '1' && c <= '9') {
+				int emptyCount = Character.getNumericValue(c);
+				index += emptyCount;
+			} else if (c == '/') {
+				// ignore
+			} else if (c == ' ') {
+				return fenPositions;
+			} else {
+				throw new IllegalArgumentException("Unknown character '" + c + "' in FEN string: " + fen);
+			}
+		}
+		return fenPositions;
 	}
 	
+	private static Position toPosition(char character, int index) {
+		int x = index % 8;
+		int y = 7 - index / 8;
+		for (Piece piece : Piece.values()) {
+			if (piece.getWhiteCharacter() == character) {
+				return new Position(piece, x, y, true);
+			}
+			if (piece.getBlackCharacter() == character) {
+				return new Position(piece, x, y, false);
+			}
+		}
+		return null;
+	}
+	
+	private void analyzePosition() {
+		
+	}
+
 	public boolean isWhiteToMove() {
 		return whiteToMove;
 	}
@@ -298,15 +352,15 @@ public class Board {
 	}
 	
 	private void addKingMoves(Position position, List<Move> moves) {
-		addMoveIfNoCheck(position, position.x-1, position.y-1, moves);
-		addMoveIfNoCheck(position, position.x-1, position.y+0, moves);
-		addMoveIfNoCheck(position, position.x-1, position.y+1, moves);
-		addMoveIfNoCheck(position, position.x+0, position.y-1, moves);
-		addMoveIfNoCheck(position, position.x+0, position.y+0, moves);
-		addMoveIfNoCheck(position, position.x+0, position.y+1, moves);
-		addMoveIfNoCheck(position, position.x+1, position.y-1, moves);
-		addMoveIfNoCheck(position, position.x+1, position.y+0, moves);
-		addMoveIfNoCheck(position, position.x+1, position.y-1, moves);
+		addMoveIfSave(position, position.x-1, position.y-1, moves);
+		addMoveIfSave(position, position.x-1, position.y+0, moves);
+		addMoveIfSave(position, position.x-1, position.y+1, moves);
+		addMoveIfSave(position, position.x+0, position.y-1, moves);
+		addMoveIfSave(position, position.x+0, position.y+0, moves);
+		addMoveIfSave(position, position.x+0, position.y+1, moves);
+		addMoveIfSave(position, position.x+1, position.y-1, moves);
+		addMoveIfSave(position, position.x+1, position.y+0, moves);
+		addMoveIfSave(position, position.x+1, position.y-1, moves);
 	}
 	
 	private boolean isPawnStart(Position position) {
@@ -317,8 +371,8 @@ public class Board {
 		}
 	}
 
-	private boolean addMoveIfNoCheck(Position position, int targetX, int targetY, List<Move> moves) {
-		// TODO verify if check
+	private boolean addMoveIfSave(Position position, int targetX, int targetY, List<Move> moves) {
+		// TODO verify if safe from attack
 		return addMove(position, targetX, targetY, moves);
 	}
 	
@@ -380,6 +434,50 @@ public class Board {
 		return board;
 	}
 	
+	@Override
+	public String toString() {
+		return toFenString();
+	}
+
+	public String toFenString() {
+		StringBuilder builder = new StringBuilder();
+
+		char[] charBoard = new char[64];
+		for (int i = 0; i < charBoard.length; i++) {
+			charBoard[i] = ' ';
+		}
+		
+		for(Position position : positions) {
+			charBoard[position.x + (7-position.y) * 8] = position.getCharacter();
+		}
+		
+		for (int y = 0; y < 8; y++) {
+			int emptyCount = 0;
+			for (int x = 0; x < 8; x++) {
+				char figure = charBoard[x + y * 8];
+				if (figure == ' ') {
+					emptyCount++;
+				} else {
+					if (emptyCount > 0) {
+						builder.append(emptyCount);
+						emptyCount = 0;
+					}
+					builder.append(figure);
+				}
+			}
+
+			if (emptyCount > 0) {
+				builder.append(emptyCount);
+			}
+			
+			if (y != 7) {
+				builder.append("/");
+			}
+		}
+		
+		return builder.toString();
+	}
+
 	public static String toPositionString(int x, int y) {
 		return String.valueOf(LETTERS[x]) + (y + 1);
 	}
@@ -392,6 +490,7 @@ public class Board {
 
 		for (int i = 0; i < 100; i++) {
 			System.out.println("STEP " + i);
+			System.out.println(board.toFenString());
 			List<Move> allMoves = board.getAllMoves();
 			System.out.println("VALUE " + board.getValue());
 			System.out.println("ALL   " + allMoves);
