@@ -233,6 +233,7 @@ public class Board {
 		switch(position.getPiece()) {
 		case Pawn:
 			value *= 0.9 + getPawnLine(position) * 0.2;
+			value *= 0.98 + getPawnValueX(position);
 			break;
 		case King:
 			break;
@@ -316,6 +317,11 @@ public class Board {
 			return 7 - position.getY();
 		}
 		throw new IllegalArgumentException("Unknown side: " + position.getSide());
+	}
+	
+	private static final double PAWN_VALUE_X[] = { 0.0, 0.01, 0.02, 0.05, 0.05, 0.02, 0.01, 0.0 };
+	private static double getPawnValueX(Position position) {
+		return PAWN_VALUE_X[position.getX()];
 	}
 
 	static int getPawnDirection(Side side) {
