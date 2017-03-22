@@ -36,11 +36,29 @@ public class Analysis {
 				analysePosition(position);
 			}
 		}
-		for (Position position : kings) {
-			analysePositionOnlyThreats(position);
+		
+		{
+			// king must create their moves without checking other kings threat - then set the threats according these moves
+			
+			long attackedByWhiteBitboardBeforeKings = attackedByWhiteBitboard;
+			long attackedByBlackBitboardBeforeKings = attackedByBlackBitboard;
+			long attackedByWhiteBitboardAfterKings = 0;
+			long attackedByBlackBitboardAfterKings = 0;
+			for (Position king : kings) {
+				attackedByWhiteBitboard = attackedByWhiteBitboardBeforeKings;
+				attackedByBlackBitboard = attackedByBlackBitboardBeforeKings;
+				
+				analysePositionOnlyThreats(king);
+				
+				attackedByWhiteBitboardAfterKings |= attackedByWhiteBitboard;
+				attackedByBlackBitboardAfterKings |= attackedByBlackBitboard;
+			}
+			attackedByWhiteBitboard = attackedByWhiteBitboardAfterKings;
+			attackedByBlackBitboard = attackedByBlackBitboardAfterKings;
 		}
-		for (Position position : kings) {
-			analysePosition(position);
+		
+		for (Position king : kings) {
+			analysePosition(king);
 		}
 		
 		analyseKingToMove(board);

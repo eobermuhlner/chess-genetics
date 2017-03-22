@@ -139,6 +139,15 @@ public class BoardTest {
 		assertMoves(board.getAllMoves()); // no moves
 	}	
 
+	@Test
+	public void testKingsThreateningEachOther() {
+		Board board = newBoard(Side.White, "Ka1", "kc1");
+		assertEquals(false, board.isCheck());
+		assertEquals(false, board.isMate());
+		assertEquals(false, board.isPatt());
+		assertMoves(board.getAllMoves(), "a2");
+	}	
+
 	private List<Move> whiteToMove(String... positions) {
 		Board board = newBoard(Side.White, positions);
 		return board.getAllMoves();
