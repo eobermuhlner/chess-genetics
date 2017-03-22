@@ -176,6 +176,10 @@ public class Board {
 		return sideToMove;
 	}
 	
+	public boolean isFinished() {
+		return getAllMoves().isEmpty();
+	}
+	
 	public boolean isMate() {
 		return isCheck() && getAllMoves().isEmpty();
 	}
@@ -355,18 +359,31 @@ public class Board {
 	}
 
 	public void move(Move move) {
-		positions.remove(move.getSource());
-		positions.remove(move.getKill());
+		Position source = move.getSource();
+		move(source.getX(), source.getY(), move.getTargetX(), move.getTargetY(), move.getConvert());
+	}
+
+	public void move(int sourceX, int sourceY, int targetX, int targetY) {
+		move(sourceX, sourceY, targetX, targetY, null);
+	}
+
+	public void move(int sourceX, int sourceY, int targetX, int targetY, Piece convert) {
+		Position source = positions.stream()
+				.filter(position -> position.getX() == sourceX && position.getY() == sourceY)
+				.findAny()
+				.get();
+		positions.remove(source);
+		positions.removeIf(position -> position.getX() == targetX && position.getY() == targetY);
 		
-		Piece piece = move.getConvert() == null ? move.getSource().getPiece() : move.getConvert();
-		Position newPosition = new Position(piece, move.getSource().getSide(), move.getTargetX(), move.getTargetY());
-		
+		Piece piece = convert == null ? source.getPiece() : convert;
+		Position newPosition = new Position(piece, source.getSide(), targetX, targetY);
+
 		positions.add(newPosition);
 		sideToMove = sideToMove.otherSide();
 		
 		invalidateAnalysis();
 	}
-	
+
 	public Board clone() {
 		Board board = new Board();
 		
@@ -430,8 +447,9 @@ public class Board {
 		Board board = new Board();
 		board.setStartPosition();
 
-		for (int i = 0; i < 100; i++) {
-			System.out.println("STEP  " + i);
+		int index = 1;
+		while (!board.isFinished()) {
+			System.out.println("STEP  " + index++);
 			System.out.println("FEN   " + board.toFenString());
 			System.out.println("STATE " + board.getSideToMove() + " " + (board.isMate() ? "mate " : "") + (board.isCheck() ? "check " : "") + (board.isPatt() ? "patt" : ""));
 			List<Move> allMoves = board.getAllMoves();
