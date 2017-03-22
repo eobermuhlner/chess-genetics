@@ -14,7 +14,7 @@ public class Analysis {
 
 	public Analysis(Board board) {
 		for (Position position : board.positions) {
-			positionBoard[position.x + position.y * 8] = position;
+			positionBoard[position.getX() + position.getY() * 8] = position;
 		}
 		
 		for (Position position : board.positions) {
@@ -47,7 +47,7 @@ public class Analysis {
 	}
 	
 	private void addAllMoves(Position position, List<Move> moves, List<Position> attacks, List<Position> defends) {
-		switch(position.piece) {
+		switch(position.getPiece()) {
 		case Pawn:
 			addPawnMoves(position, moves, attacks, defends);
 			break;
@@ -70,26 +70,32 @@ public class Analysis {
 	}
 
 	private void addPawnMoves(Position position, List<Move> moves, List<Position> attacks, List<Position> defends) {
-		int direction = Board.getPawnDirection(position.side);
+		int x = position.getX();
+		int y = position.getY();
+
+		int direction = Board.getPawnDirection(position.getSide());
 		
-		if (addMovePawnIfFree(position, position.x, position.y + direction, moves, attacks, defends) && position.y == Board.getPawnStart(position.side)) {
-			addMovePawnIfFree(position, position.x, position.y + direction + direction, moves, attacks, defends);
+		if (addMovePawnIfFree(position, x, y + direction, moves, attacks, defends) && y == Board.getPawnStart(position.getSide())) {
+			addMovePawnIfFree(position, x, y + direction + direction, moves, attacks, defends);
 		}
-		addMovePawnMustKill(position, position.x + 1, position.y + direction, moves, attacks, defends);
-		addMovePawnMustKill(position, position.x - 1, position.y + direction, moves, attacks, defends);
+		addMovePawnMustKill(position, x+1, y + direction, moves, attacks, defends);
+		addMovePawnMustKill(position, x-1, y + direction, moves, attacks, defends);
 		
 		// TODO add en-passant
 	}
 	
 	private void addKnightMoves(Position position, List<Move> moves, List<Position> attacks, List<Position> defends) {
-		addMove(position, position.x-2, position.y+1, moves, attacks, defends);
-		addMove(position, position.x-1, position.y+2, moves, attacks, defends);
-		addMove(position, position.x+1, position.y+2, moves, attacks, defends);
-		addMove(position, position.x+2, position.y+1, moves, attacks, defends);
-		addMove(position, position.x+2, position.y-1, moves, attacks, defends);
-		addMove(position, position.x+1, position.y-2, moves, attacks, defends);
-		addMove(position, position.x-1, position.y-2, moves, attacks, defends);
-		addMove(position, position.x-2, position.y-1, moves, attacks, defends);
+		int x = position.getX();
+		int y = position.getY();
+
+		addMove(position, x-2, y+1, moves, attacks, defends);
+		addMove(position, x-1, y+2, moves, attacks, defends);
+		addMove(position, x+1, y+2, moves, attacks, defends);
+		addMove(position, x+2, y+1, moves, attacks, defends);
+		addMove(position, x+2, y-1, moves, attacks, defends);
+		addMove(position, x+1, y-2, moves, attacks, defends);
+		addMove(position, x-1, y-2, moves, attacks, defends);
+		addMove(position, x-2, y-1, moves, attacks, defends);
 	}
 
 	private void addBishopMoves(Position position, List<Move> moves, List<Position> attacks, List<Position> defends) {
@@ -119,8 +125,8 @@ public class Analysis {
 	}
 
 	private void addRayMoves(Position position, int directionX, int directionY, List<Move> moves, List<Position> attacks, List<Position> defends) {
-		int x = position.x;
-		int y = position.y;
+		int x = position.getX();
+		int y = position.getY();
 		
 		boolean ok = false;
 		do {
@@ -132,15 +138,18 @@ public class Analysis {
 	}
 	
 	private void addKingMoves(Position position, List<Move> moves, List<Position> attacks, List<Position> defends) {
-		addMoveIfSave(position, position.x-1, position.y-1, moves, attacks, defends);
-		addMoveIfSave(position, position.x-1, position.y+0, moves, attacks, defends);
-		addMoveIfSave(position, position.x-1, position.y+1, moves, attacks, defends);
-		addMoveIfSave(position, position.x+0, position.y-1, moves, attacks, defends);
-		addMoveIfSave(position, position.x+0, position.y+0, moves, attacks, defends);
-		addMoveIfSave(position, position.x+0, position.y+1, moves, attacks, defends);
-		addMoveIfSave(position, position.x+1, position.y-1, moves, attacks, defends);
-		addMoveIfSave(position, position.x+1, position.y+0, moves, attacks, defends);
-		addMoveIfSave(position, position.x+1, position.y-1, moves, attacks, defends);
+		int x = position.getX();
+		int y = position.getY();
+
+		addMoveIfSave(position, x-1, y-1, moves, attacks, defends);
+		addMoveIfSave(position, x-1, y+0, moves, attacks, defends);
+		addMoveIfSave(position, x-1, y+1, moves, attacks, defends);
+		addMoveIfSave(position, x+0, y-1, moves, attacks, defends);
+		addMoveIfSave(position, x+0, y+0, moves, attacks, defends);
+		addMoveIfSave(position, x+0, y+1, moves, attacks, defends);
+		addMoveIfSave(position, x+1, y-1, moves, attacks, defends);
+		addMoveIfSave(position, x+1, y+0, moves, attacks, defends);
+		addMoveIfSave(position, x+1, y-1, moves, attacks, defends);
 	}
 	
 	private Move addMoveIfSave(Position position, int targetX, int targetY, List<Move> moves, List<Position> attacks, List<Position> defends) {
@@ -155,7 +164,7 @@ public class Analysis {
 		
 		Position target = getPosition(targetX, targetY);
 		if (target == null) {
-			if (targetY == Board.getLastRow(position.side)) {
+			if (targetY == Board.getLastRow(position.getSide())) {
 				for (Piece convert : Arrays.asList(Piece.Knight, Piece.Bishop, Piece.Rook, Piece.Queen)) {
 					moves.add(new Move(position, targetX, targetY, target, convert));
 				}
@@ -175,8 +184,8 @@ public class Analysis {
 		
 		Position target = getPosition(targetX, targetY);
 		if (target != null) {
-			if (target.side != position.side) {
-				if (targetY == Board.getLastRow(position.side)) {
+			if (target.getSide() != position.getSide()) {
+				if (targetY == Board.getLastRow(position.getSide())) {
 					for (Piece convert : Arrays.asList(Piece.Knight, Piece.Bishop, Piece.Rook, Piece.Queen)) {
 						moves.add(new Move(position, targetX, targetY, target, convert));
 						attacks.add(target);
@@ -204,7 +213,7 @@ public class Analysis {
 			move = new Move(position, targetX, targetY, target);
 			moves.add(move);
 		} else {
-			if (target.side != position.side) {
+			if (target.getSide() != position.getSide()) {
 				move = new Move(position, targetX, targetY, target);
 				moves.add(move);
 				attacks.add(target);

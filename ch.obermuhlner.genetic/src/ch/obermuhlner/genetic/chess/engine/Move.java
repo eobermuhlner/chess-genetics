@@ -45,7 +45,7 @@ public class Move {
 	
 	public double getValue() {
 		if (kill != null) {
-			return kill.piece.getValue();
+			return kill.getPiece().getValue();
 		}
 		if (convert != null) {
 			return convert.getValue();
@@ -64,7 +64,7 @@ public class Move {
 		}
 		if (convert != null) {
 			result.append("=");
-			result.append(convert.getCharacter(source.side));
+			result.append(convert.getCharacter(source.getSide()));
 		}
 		result.append("(");
 		result.append(getValue());

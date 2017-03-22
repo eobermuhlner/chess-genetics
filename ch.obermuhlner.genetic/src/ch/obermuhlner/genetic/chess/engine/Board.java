@@ -198,7 +198,7 @@ public class Board {
 	
 	public double getSideValue(Side side) {
 		double value = positions.stream()
-				.filter(position -> position.side == side)
+				.filter(position -> position.getSide() == side)
 				.mapToDouble(position -> getValue(position))
 				.sum();
 		
@@ -210,9 +210,9 @@ public class Board {
 	}
 	
 	private double getValue(Position position) {
-		double value = position.piece.getValue();
+		double value = position.getPiece().getValue();
 		
-		switch(position.piece) {
+		switch(position.getPiece()) {
 		case Pawn:
 			value *= 0.9 + getPawnLine(position) * 0.2;
 			break;
@@ -233,15 +233,15 @@ public class Board {
 	}
 	
 	private double getMobilityFactor(Position position) {
-		return (double) getAllMoves(position).size() / position.piece.getMaxMoves();
+		return (double) getAllMoves(position).size() / position.getPiece().getMaxMoves();
 	}
 
 	private double getAttacksFactor(Position position) {
-		return (double) getAllAttacks(position).size() / position.piece.getMaxAttacks();
+		return (double) getAllAttacks(position).size() / position.getPiece().getMaxAttacks();
 	}
 
 	private double getDefendsFactor(Position position) {
-		return (double) getAllDefends(position).size() / position.piece.getMaxAttacks();
+		return (double) getAllDefends(position).size() / position.getPiece().getMaxAttacks();
 	}
 
 	public List<Move> getAllMoves() {
@@ -260,8 +260,8 @@ public class Board {
 		List<Move> moves = new ArrayList<>();
 		
 		moves.addAll(positions.stream()
-			.filter(position -> position.side == sideToMove)
-			.filter(position -> position.piece == Piece.King)
+			.filter(position -> position.getSide() == sideToMove)
+			.filter(position -> position.getPiece() == Piece.King)
 			.flatMap(position -> getAllMoves(position).stream())
 			.collect(Collectors.toList()));
 		
@@ -275,7 +275,7 @@ public class Board {
 		List<Move> moves = new ArrayList<>();
 
 		moves.addAll(positions.stream()
-				.filter(position -> position.side == sideToMove)
+				.filter(position -> position.getSide() == sideToMove)
 				.filter(position -> !moveWillLeaveInCheck(position))
 				.flatMap(position -> getAllMoves(position).stream())
 				.collect(Collectors.toList()));
@@ -301,13 +301,13 @@ public class Board {
 	}
 
 	private static int getPawnLine(Position position) {
-		switch(position.side) {
+		switch(position.getSide()) {
 		case White:
-			return position.y;
+			return position.getY();
 		case Black:
-			return 7 - position.y;
+			return 7 - position.getY();
 		}
-		throw new IllegalArgumentException("Unknown side: " + position.side);
+		throw new IllegalArgumentException("Unknown side: " + position.getSide());
 	}
 
 	static int getPawnDirection(Side side) {
@@ -344,8 +344,8 @@ public class Board {
 		positions.remove(move.getSource());
 		positions.remove(move.getKill());
 		
-		Piece piece = move.getConvert() == null ? move.getSource().piece : move.getConvert();
-		Position newPosition = new Position(piece, move.getSource().side, move.getTargetX(), move.getTargetY());
+		Piece piece = move.getConvert() == null ? move.getSource().getPiece() : move.getConvert();
+		Position newPosition = new Position(piece, move.getSource().getSide(), move.getTargetX(), move.getTargetY());
 		
 		positions.add(newPosition);
 		sideToMove = sideToMove.otherSide();
@@ -376,7 +376,7 @@ public class Board {
 		}
 		
 		for(Position position : positions) {
-			charBoard[position.x + (7-position.y) * 8] = position.getCharacter();
+			charBoard[position.getX() + (7-position.getY()) * 8] = position.getCharacter();
 		}
 		
 		for (int y = 0; y < 8; y++) {
