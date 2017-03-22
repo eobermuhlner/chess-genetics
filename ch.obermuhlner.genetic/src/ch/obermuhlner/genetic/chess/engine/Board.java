@@ -10,7 +10,7 @@ public class Board {
 
 	private static final char[] LETTERS = { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h' };
 	
-	final List<Position> positions = new ArrayList<>();
+	private final List<Position> positions = new ArrayList<>();
 	
 	private Side sideToMove = Side.White;
 	
@@ -114,6 +114,10 @@ public class Board {
 		return null;
 	}
 
+	public List<Position> getPositions() {
+		return positions;
+	}
+	
 	public void addPosition(String position) {
 		char character = position.charAt(0);
 		

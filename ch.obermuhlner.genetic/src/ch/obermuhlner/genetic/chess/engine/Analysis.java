@@ -13,11 +13,11 @@ public class Analysis {
 	private final Map<Position, List<Position>> positionDefendsMap = new HashMap<>();
 
 	public Analysis(Board board) {
-		for (Position position : board.positions) {
+		for (Position position : board.getPositions()) {
 			positionBoard[position.getX() + position.getY() * 8] = position;
 		}
 		
-		for (Position position : board.positions) {
+		for (Position position : board.getPositions()) {
 			List<Move> moves = new ArrayList<>();
 			List<Position> attacks = new ArrayList<>();
 			List<Position> defends = new ArrayList<>();
