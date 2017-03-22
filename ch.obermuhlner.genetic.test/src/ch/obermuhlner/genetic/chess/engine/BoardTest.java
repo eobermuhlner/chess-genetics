@@ -104,6 +104,57 @@ public class BoardTest {
 	}
 	
 	@Test
+	public void testQueenMoves() {
+		assertMoves(whiteToMove("Qe4"),
+				"d3", "c2", "b1",
+				"f3", "g2", "h1",
+				"d5", "c6", "b7", "a8",
+				"f5", "g6", "h7",
+				"f4", "g4", "h4", 
+				"e5", "e6", "e7", "e8", 
+				"e3", "e2", "e1", 
+				"d4", "c4", "b4", "a4");
+		assertMoves(whiteToMove("Qe4", "Pc6"),
+				"d3", "c2", "b1",
+				"f3", "g2", "h1",
+				"d5", // this ray blocked by own pawn
+				"f5", "g6", "h7"
+				, "c7", // pawn can also move
+				"f4", "g4", "h4", 
+				"e5", "e6", "e7", "e8", 
+				"e3", "e2", "e1", 
+				"d4", "c4", "b4", "a4");
+		assertMoves(whiteToMove("Qe4", "Pc4"),
+				"d3", "c2", "b1",
+				"f3", "g2", "h1",
+				"d5", "c6", "b7", "a8",
+				"f5", "g6", "h7",
+				"f4", "g4", "h4", 
+				"e5", "e6", "e7", "e8", 
+				"e3", "e2", "e1",
+				"d4", // this ray blocked by own pawn
+				"c5"); // pawn can also move
+		assertMoves(whiteToMove("Qe4", "pc6"),
+				"d3", "c2", "b1",
+				"f3", "g2", "h1",
+				"d5", "c6", // this ray blocked by enemy pawn
+				"f5", "g6", "h7",
+				"f4", "g4", "h4", 
+				"e5", "e6", "e7", "e8", 
+				"e3", "e2", "e1", 
+				"d4", "c4", "b4", "a4");
+		assertMoves(whiteToMove("Qe4", "pd4"),
+				"d3", "c2", "b1",
+				"f3", "g2", "h1",
+				"d5", "c6", "b7", "a8",
+				"f5", "g6", "h7",
+				"f4", "g4", "h4", 
+				"e5", "e6", "e7", "e8", 
+				"e3", "e2", "e1",
+				"d4"); // this ray blocked by enemy pawn
+	}
+	
+	@Test
 	public void testKingNotInCheck() {
 		Board board = newBoard(Side.White, "Ka1", "rb8");
 		assertEquals(false, board.isCheck());
