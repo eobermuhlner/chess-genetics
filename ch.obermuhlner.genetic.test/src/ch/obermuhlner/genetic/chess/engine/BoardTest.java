@@ -155,6 +155,12 @@ public class BoardTest {
 	}
 	
 	@Test
+	public void testKingMoves() {
+		assertMoves(whiteToMove("Ke4"),
+				"d5", "e5", "f5", "d4", "f4", "d3", "e3", "f3");
+	}
+	
+	@Test
 	public void testKingNotInCheck() {
 		Board board = newBoard(Side.White, "Ka1", "rb8");
 		assertEquals(false, board.isCheck());
