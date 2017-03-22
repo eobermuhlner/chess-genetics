@@ -2,48 +2,143 @@ package ch.obermuhlner.genetic.chess.engine;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class Analysis {
 	private final Position[] positionBoard = new Position[64];
+	
 	private final Map<Position, List<Move>> positionMovesMap = new HashMap<>();
 	private final Map<Position, List<Position>> positionAttacksMap = new HashMap<>();
 	private final Map<Position, List<Position>> positionDefendsMap = new HashMap<>();
+
+	private final Map<Position, List<Position>> positionAttackersMap = new HashMap<>();
+	private final Map<Position, List<Position>> positionDefendersMap = new HashMap<>();
+	
+	private long attackedByWhiteBitboard;
+	private long attackedByBlackBitboard;
+
+	private boolean kingInCheck;
 
 	public Analysis(Board board) {
 		for (Position position : board.getPositions()) {
 			positionBoard[position.getX() + position.getY() * 8] = position;
 		}
 		
+		List<Position> kings = new ArrayList<>();
 		for (Position position : board.getPositions()) {
-			List<Move> moves = new ArrayList<>();
-			List<Position> attacks = new ArrayList<>();
-			List<Position> defends = new ArrayList<>();
-			
-			addAllMoves(position, moves, attacks, defends);
-			
-			positionMovesMap.put(position, moves);
-			positionAttacksMap.put(position, attacks);
-			positionDefendsMap.put(position, defends);
+			if (position.getPiece() == Piece.King) {
+				kings.add(position);
+			} else {
+				analysePosition(position);
+			}
+		}
+		for (Position position : kings) {
+			analysePositionOnlyThreats(position);
+		}
+		for (Position position : kings) {
+			analysePosition(position);
+		}
+		
+		analyseKingToMove(board);
+	}
+
+	private void analysePosition(Position position) {
+		List<Move> moves = new ArrayList<>();
+		List<Position> attacks = new ArrayList<>();
+		List<Position> defends = new ArrayList<>();
+		
+		addAllMoves(position, moves, attacks, defends);
+		
+		positionMovesMap.put(position, moves);
+		positionAttacksMap.put(position, attacks);
+		positionDefendsMap.put(position, defends);
+
+		for(Move move : moves) {
+			setThreatenedBy(move.getSource().getSide(), move.getTargetX(), move.getTargetY());
+		}
+		
+		for(Position attacked : attacks) {
+			positionAttackersMap.computeIfAbsent(position, key -> new ArrayList<>()).add((attacked));
+		}
+		for(Position defended : defends) {
+			positionDefendersMap.computeIfAbsent(position, key -> new ArrayList<>()).add((defended));
+			setThreatenedBy(position.getSide(), defended.getX(), defended.getY());
+		}
+	}
+
+	private void analysePositionOnlyThreats(Position position) {
+		List<Move> moves = new ArrayList<>();
+		List<Position> attacks = new ArrayList<>();
+		List<Position> defends = new ArrayList<>();
+		
+		addAllMoves(position, moves, attacks, defends);
+		
+		for(Move move : moves) {
+			setThreatenedBy(move.getSource().getSide(), move.getTargetX(), move.getTargetY());
+		}
+		for(Position defended : defends) {
+			setThreatenedBy(position.getSide(), defended.getX(), defended.getY());
+		}
+	}
+
+	private void analyseKingToMove(Board board) {
+		Optional<Position> optionalKing = board.getPositions().stream()
+				.filter(position -> position.getPiece() == Piece.King)
+				.filter(position -> position.getSide() == board.getSideToMove())
+				.findAny();
+		
+		if (optionalKing.isPresent()) {
+			Position king = optionalKing.get();
+			kingInCheck = isThreatenedBy(king.getSide().otherSide(), king.getX(), king.getY());
 		}
 	}
 	
+	public boolean isKingInCheck() {
+		return kingInCheck;
+	}
+
+	private long toBit(int x, int y) {
+		return 1L << (x + y * 8);
+	}
+
 	public Position getPosition(int x, int y) {
 		return positionBoard[x + y * 8];
 	}
 	
-	public Map<Position, List<Move>> getPositionMovesMap() {
-		return positionMovesMap;
+	private void setThreatenedBy(Side side, int x, int y) {
+		long attacksBit = toBit(x, y);
+		if (side == Side.White) {
+			attackedByWhiteBitboard |= attacksBit;
+		} else {
+			attackedByBlackBitboard |= attacksBit;
+		}
 	}
 	
-	public Map<Position, List<Position>> getPositionAttacksMap() {
-		return positionAttacksMap;
-	}
+	public boolean isThreatenedBy(Side side, int x, int y) {
+		if (x < 0 || x > 7 || y < 0 || y > 7) {
+			return false;
+		}
+		long bitboard = side == Side.White ? attackedByWhiteBitboard : attackedByBlackBitboard;
+		return (bitboard & toBit(x, y)) != 0;}
 	
-	public Map<Position, List<Position>> getPositionDefendsMap() {
-		return positionDefendsMap;
+	public List<Move> getMoves(Position position) {
+		return positionMovesMap.getOrDefault(position, Collections.emptyList());
+	}
+
+	public List<Position> getAttacks(Position attacker) {
+		return positionAttacksMap.getOrDefault(attacker, Collections.emptyList());
+	}
+
+	public List<Position> getDefends(Position defender) {
+		return positionDefendsMap.getOrDefault(defender, Collections.emptyList());
+	}
+
+	public List<Position> getAttackers(Position victim) {
+		return positionAttackersMap.getOrDefault(victim, Collections.emptyList());
 	}
 	
 	private void addAllMoves(Position position, List<Move> moves, List<Position> attacks, List<Position> defends) {
@@ -145,7 +240,6 @@ public class Analysis {
 		addMoveIfSave(position, x-1, y+0, moves, attacks, defends);
 		addMoveIfSave(position, x-1, y+1, moves, attacks, defends);
 		addMoveIfSave(position, x+0, y-1, moves, attacks, defends);
-		addMoveIfSave(position, x+0, y+0, moves, attacks, defends);
 		addMoveIfSave(position, x+0, y+1, moves, attacks, defends);
 		addMoveIfSave(position, x+1, y-1, moves, attacks, defends);
 		addMoveIfSave(position, x+1, y+0, moves, attacks, defends);
@@ -153,8 +247,10 @@ public class Analysis {
 	}
 	
 	private Move addMoveIfSave(Position position, int targetX, int targetY, List<Move> moves, List<Position> attacks, List<Position> defends) {
-		// TODO verify if safe from attack
-		return addMove(position, targetX, targetY, moves, attacks, defends);
+		if (!isThreatenedBy(position.getSide().otherSide(), targetX, targetY)) {
+			return addMove(position, targetX, targetY, moves, attacks, defends);
+		}
+		return null;
 	}
 	
 	private boolean addMovePawnIfFree(Position position, int targetX, int targetY, List<Move> moves, List<Position> attacks, List<Position> defends) {

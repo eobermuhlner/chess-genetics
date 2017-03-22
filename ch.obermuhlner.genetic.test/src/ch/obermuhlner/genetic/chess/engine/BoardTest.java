@@ -103,6 +103,38 @@ public class BoardTest {
 				"d4"); // this ray blocked by enemy pawn
 	}
 	
+	@Test
+	public void testKingNotInCheck() {
+		Board board = newBoard(Side.White, "Ka1", "rb8");
+		assertEquals(false, board.isCheck());
+		assertEquals(false, board.isMate());
+		assertEquals(false, board.isPatt());
+	}	
+	
+	@Test
+	public void testKingInCheck() {
+		Board board = newBoard(Side.White, "Ka1", "ra8");
+		assertEquals(true, board.isCheck());
+		assertEquals(false, board.isMate());
+		assertEquals(false, board.isPatt());
+	}	
+	
+	@Test
+	public void testKingMate() {
+		Board board = newBoard(Side.White, "Ka1", "ra8", "rb8");
+		assertEquals(true, board.isCheck());
+		assertEquals(true, board.isMate());
+		assertEquals(false, board.isPatt());
+	}	
+	
+	@Test
+	public void testKingPatt() {
+		Board board = newBoard(Side.White, "Ka1", "rh2", "rb8");
+		assertEquals(false, board.isCheck());
+		assertEquals(false, board.isMate());
+		assertEquals(true, board.isPatt());
+	}	
+	
 	private List<Move> whiteToMove(String... positions) {
 		Board board = newBoard(Side.White, positions);
 		return board.getAllMoves();

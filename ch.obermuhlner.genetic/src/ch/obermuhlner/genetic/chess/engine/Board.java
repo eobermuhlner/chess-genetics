@@ -1,7 +1,6 @@
 package ch.obermuhlner.genetic.chess.engine;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -178,18 +177,15 @@ public class Board {
 	}
 	
 	public boolean isMate() {
-		// TODO
-		return false;
+		return isCheck() && getAllMoves().isEmpty();
 	}
 	
 	public boolean isPatt() {
-		// TODO
-		return false;
+		return !isCheck() && getAllMoves().isEmpty();
 	}
 	
 	public boolean isCheck() {
-		// TODO
-		return false;
+		return getAnalysis().isKingInCheck();
 	}
 	
 	public Position getPosition(int x, int y) {
@@ -201,14 +197,32 @@ public class Board {
 	}
 	
 	public double getSideValue(Side side) {
-		double value = positions.stream()
+		double value = 0;
+		
+		if (sideToMove == side) {
+			if (isMate()) {
+				return 100;
+			}
+			if (isPatt()) {
+				return 0;
+			}
+
+			if (isCheck()) {
+				value += 20;
+			} else {
+				value += 0.5;
+			}
+		} else {
+			if (isMate() || isPatt()) {
+				return 0;
+			}
+		}
+
+		value += positions.stream()
 				.filter(position -> position.getSide() == side)
 				.mapToDouble(position -> getValue(position))
 				.sum();
 		
-		if (sideToMove == side) {
-			value += 0.5;
-		}
 		
 		return value;
 	}
@@ -233,26 +247,28 @@ public class Board {
 		value *= 0.9 + getAttacksFactor(position) * 0.2;
 		value *= 0.9 + getDefendsFactor(position) * 0.15;
 		
+		value *= 1.0 - getAttackedFactor(position) * 0.1;
+		
 		return value;
 	}
 	
 	private double getMobilityFactor(Position position) {
-		return (double) getAllMoves(position).size() / position.getPiece().getMaxMoves();
+		return (double) getAnalysis().getMoves(position).size() / position.getPiece().getMaxMoves();
 	}
 
 	private double getAttacksFactor(Position position) {
-		return (double) getAllAttacks(position).size() / position.getPiece().getMaxAttacks();
+		return (double) getAnalysis().getAttacks(position).size() / position.getPiece().getMaxAttacks();
 	}
 
 	private double getDefendsFactor(Position position) {
-		return (double) getAllDefends(position).size() / position.getPiece().getMaxAttacks();
+		return (double) getAnalysis().getDefends(position).size() / position.getPiece().getMaxAttacks();
+	}
+
+	private double getAttackedFactor(Position position) {
+		return (double) getAnalysis().getAttackers(position).size() / 16;
 	}
 
 	public List<Move> getAllMoves() {
-		if (isMate() || isPatt()) {
-			return Collections.emptyList();
-		}
-		
 		if (isCheck()) {
 			return getAllMovesUnderCheck();
 		}
@@ -266,7 +282,7 @@ public class Board {
 		moves.addAll(positions.stream()
 			.filter(position -> position.getSide() == sideToMove)
 			.filter(position -> position.getPiece() == Piece.King)
-			.flatMap(position -> getAllMoves(position).stream())
+			.flatMap(position -> getAnalysis().getMoves(position).stream())
 			.collect(Collectors.toList()));
 		
 		// TODO find moves that kill checking piece
@@ -281,7 +297,7 @@ public class Board {
 		moves.addAll(positions.stream()
 				.filter(position -> position.getSide() == sideToMove)
 				.filter(position -> !moveWillLeaveInCheck(position))
-				.flatMap(position -> getAllMoves(position).stream())
+				.flatMap(position -> getAnalysis().getMoves(position).stream())
 				.collect(Collectors.toList()));
 
 		return moves;
@@ -290,18 +306,6 @@ public class Board {
 	private boolean moveWillLeaveInCheck(Position position) {
 		// TODO Auto-generated method stub
 		return false;
-	}
-
-	private List<Move> getAllMoves(Position position) {
-		return getAnalysis().getPositionMovesMap().get(position);
-	}
-
-	private List<Position> getAllAttacks(Position position) {
-		return getAnalysis().getPositionAttacksMap().get(position);
-	}
-
-	private List<Position> getAllDefends(Position position) {
-		return getAnalysis().getPositionDefendsMap().get(position);
 	}
 
 	private static int getPawnLine(Position position) {
@@ -421,8 +425,9 @@ public class Board {
 		board.setStartPosition();
 
 		for (int i = 0; i < 100; i++) {
-			System.out.println("STEP " + i);
-			System.out.println(board.toFenString());
+			System.out.println("STEP  " + i);
+			System.out.println("FEN   " + board.toFenString());
+			System.out.println("STATE " + board.getSideToMove() + " " + (board.isMate() ? "mate " : "") + (board.isCheck() ? "check " : "") + (board.isPatt() ? "patt" : ""));
 			List<Move> allMoves = board.getAllMoves();
 			System.out.println("VALUE " + board.getValue());
 			System.out.println("ALL   " + allMoves);
