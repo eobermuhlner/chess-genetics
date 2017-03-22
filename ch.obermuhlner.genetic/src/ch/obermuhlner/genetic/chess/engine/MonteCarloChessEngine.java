@@ -3,8 +3,6 @@ package ch.obermuhlner.genetic.chess.engine;
 import java.util.List;
 import java.util.Random;
 
-import ch.obermuhlner.genetic.chess.engine.Board.Move;
-
 public class MonteCarloChessEngine {
 
 	private final Random random = new Random();

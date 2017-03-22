@@ -8,8 +8,6 @@ import java.util.stream.Collectors;
 
 import org.junit.Test;
 
-import ch.obermuhlner.genetic.chess.engine.Board.Move;
-
 public class BoardTest {
 
 	@Test
