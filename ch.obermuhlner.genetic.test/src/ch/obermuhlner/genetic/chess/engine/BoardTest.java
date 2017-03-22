@@ -109,6 +109,7 @@ public class BoardTest {
 		assertEquals(false, board.isCheck());
 		assertEquals(false, board.isMate());
 		assertEquals(false, board.isPatt());
+		assertMoves(board.getAllMoves(), "a2");
 	}	
 	
 	@Test
@@ -117,6 +118,7 @@ public class BoardTest {
 		assertEquals(true, board.isCheck());
 		assertEquals(false, board.isMate());
 		assertEquals(false, board.isPatt());
+		assertMoves(board.getAllMoves(), "b1", "b2");
 	}	
 	
 	@Test
@@ -125,6 +127,7 @@ public class BoardTest {
 		assertEquals(true, board.isCheck());
 		assertEquals(true, board.isMate());
 		assertEquals(false, board.isPatt());
+		assertMoves(board.getAllMoves()); // no moves
 	}	
 	
 	@Test
@@ -133,8 +136,9 @@ public class BoardTest {
 		assertEquals(false, board.isCheck());
 		assertEquals(false, board.isMate());
 		assertEquals(true, board.isPatt());
+		assertMoves(board.getAllMoves()); // no moves
 	}	
-	
+
 	private List<Move> whiteToMove(String... positions) {
 		Board board = newBoard(Side.White, positions);
 		return board.getAllMoves();
