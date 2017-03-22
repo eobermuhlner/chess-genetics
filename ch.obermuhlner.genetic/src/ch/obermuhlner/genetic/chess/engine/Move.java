@@ -1,11 +1,11 @@
 package ch.obermuhlner.genetic.chess.engine;
 
 public class Move {
-	Position source;
-	int targetX;
-	int targetY;
-	Position kill;
-	Piece convert;
+	private final Position source;
+	private final int targetX;
+	private final int targetY;
+	private final Position kill;
+	private final Piece convert;
 	
 	public Move(Position source, int targetX, int targetY, Position kill) {
 		this(source, targetX, targetY, kill, null);
@@ -23,6 +23,22 @@ public class Move {
 		return source;
 	}
 	
+	public int getTargetX() {
+		return targetX;
+	}
+	
+	public int getTargetY() {
+		return targetY;
+	}
+
+	public Position getKill() {
+		return kill;
+	}
+	
+	public Piece getConvert() {
+		return convert;
+	}
+
 	public String getTargetPositionString() {
 		return Board.toPositionString(targetX, targetY);
 	}

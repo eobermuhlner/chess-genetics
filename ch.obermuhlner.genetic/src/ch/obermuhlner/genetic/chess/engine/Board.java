@@ -341,11 +341,11 @@ public class Board {
 	}
 
 	public void move(Move move) {
-		positions.remove(move.source);
-		positions.remove(move.kill);
+		positions.remove(move.getSource());
+		positions.remove(move.getKill());
 		
-		Piece piece = move.convert == null ? move.source.piece : move.convert;
-		Position newPosition = new Position(piece, move.source.side, move.targetX, move.targetY);
+		Piece piece = move.getConvert() == null ? move.getSource().piece : move.getConvert();
+		Position newPosition = new Position(piece, move.getSource().side, move.getTargetX(), move.getTargetY());
 		
 		positions.add(newPosition);
 		sideToMove = sideToMove.otherSide();

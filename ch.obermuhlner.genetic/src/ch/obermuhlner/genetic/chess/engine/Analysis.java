@@ -127,7 +127,7 @@ public class Analysis {
 			x += directionX;
 			y += directionY;
 			Move move = addMove(position, x, y, moves, attacks, defends);
-			ok = move != null && move.kill == null;
+			ok = move != null && move.getKill() == null;
 		} while(ok);
 	}
 	
