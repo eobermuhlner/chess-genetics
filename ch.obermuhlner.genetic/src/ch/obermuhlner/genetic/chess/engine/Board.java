@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
 
+import ch.obermuhlner.util.CheckArgument;
+
 public class Board {
 
 	private static final char[] LETTERS = { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h' };
@@ -379,6 +381,8 @@ public class Board {
 	}
 
 	public void move(Move move) {
+		CheckArgument.isTrue(move.getKill() == null || move.getKill().getPiece() != Piece.King, () -> "King cannot be killed: " + move);
+		
 		positions.remove(move.getSource());
 		positions.remove(move.getKill());
 		
