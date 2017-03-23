@@ -97,7 +97,7 @@ public class MonteCarloChessEngine implements ChessEngine {
 		return findBestMove(board, moveStatistics, thinkMilliseconds);
 	}
 
-	public List<MoveValue> getAllMoves(Board board, long thinkMilliseconds) {
+	public List<MoveValue> getAllMoves(Board board, long thinkMilliseconds, int moveCount) {
 		List<Move> allMoves = board.getAllMoves();
 		if (allMoves.isEmpty()) {
 			return null;
@@ -107,14 +107,12 @@ public class MonteCarloChessEngine implements ChessEngine {
 			.map(move -> new MoveStatistic(move))
 			.collect(Collectors.toList());
 
-		int moveCount = 200;
-		
 		while (thinkMilliseconds > 0) {
 			long startMillis = System.currentTimeMillis();
-			
-			for (MoveStatistic moveStatistic : moveStatistics) {
+
+			moveStatistics.parallelStream().forEach(moveStatistic -> {
 				play(board, moveStatistic, moveCount);
-			}
+			});
 			
 			long endMillis = System.currentTimeMillis();
 			long deltaMillis = endMillis - startMillis;
@@ -123,10 +121,12 @@ public class MonteCarloChessEngine implements ChessEngine {
 		
 		sortStatistics(moveStatistics);
 		
+		System.out.println("PLAY COUNT " + moveStatistics.get(0).playCount);
+		
 		List<MoveValue> result = new ArrayList<>();
 		for (MoveStatistic moveStatistic : moveStatistics) {
 			result.add(new MoveValue(moveStatistic.move, moveStatistic.getValue()));
-		}		
+		}
 		return result;
 	}
 
