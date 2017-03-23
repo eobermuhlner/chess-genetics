@@ -28,8 +28,6 @@ public class ChessEngineDiagram {
 
 	private static final int IMAGE_OFFSET = (FIELD_PIXELS - 45) / 2;
 	
-	private static final int OVAL_PIXELS = 6;
-
 	private static final MonteCarloChessEngine chessEngine = new MonteCarloChessEngine();
 
 	private static ImageObserver imageObserver = new ImageObserver() {
@@ -119,13 +117,23 @@ public class ChessEngineDiagram {
 			int targetX = moveValue.move.getTargetX();
 			int targetY = moveValue.move.getTargetY();
 
-			float thickness = valueToThickness(moveValue.value);
+			int thickness = valueToThickness(moveValue.value);
 			Color color = valueToColor(moveValue.value);
 		
-			graphics.setStroke(new BasicStroke(thickness));
 			graphics.setColor(color);
-			graphics.drawLine(toCenterPixels(sourceX), toCenterPixels(sourceY), toCenterPixels(targetX), toCenterPixels(targetY));
-			graphics.fillOval(toCenterPixels(targetX) - OVAL_PIXELS/2, toCenterPixels(targetY) - OVAL_PIXELS/2, OVAL_PIXELS, OVAL_PIXELS);
+
+			int[] xPoints = {
+					toCenterPixels(sourceX) - thickness,
+					toCenterPixels(sourceX) + thickness,
+					toCenterPixels(targetX)
+			};
+			int[] yPoints = {
+					toCenterPixels(sourceY),
+					toCenterPixels(sourceY),
+					toCenterPixels(targetY)
+			};
+			int nPoints = 3;
+			graphics.fillPolygon(xPoints, yPoints, nPoints);
 		}
 		
 		try {
@@ -136,9 +144,9 @@ public class ChessEngineDiagram {
 		}
 	}
 
-	private static float valueToThickness(double value) {
-		double thickness = Math.min(5, Math.abs(value) * 10);
-		return (float) thickness;
+	private static int valueToThickness(double value) {
+		double thickness = Math.min(5, Math.abs(value) * 40);
+		return (int) (thickness + 0.5);
 	}
 
 	private static Color valueToColor(double value) {
