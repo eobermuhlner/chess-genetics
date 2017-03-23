@@ -45,10 +45,10 @@ public class Move {
 	
 	public double getValue() {
 		if (kill != null) {
-			return kill.getPiece().getValue();
+			return kill.getPiece().getValue(kill.getSide(), kill.getX(), kill.getY());
 		}
 		if (convert != null) {
-			return convert.getValue();
+			return convert.getValue(source.getSide(), source.getX(), source.getY());
 		}
 		return 0.1;
 	}
