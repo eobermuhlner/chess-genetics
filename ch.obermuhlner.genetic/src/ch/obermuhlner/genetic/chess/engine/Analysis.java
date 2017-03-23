@@ -80,10 +80,10 @@ public class Analysis {
 		}
 		
 		for(Position attacked : attacks) {
-			positionAttackersMap.computeIfAbsent(position, key -> new ArrayList<>()).add((attacked));
+			positionAttackersMap.computeIfAbsent(attacked, key -> new ArrayList<>()).add((position));
 		}
 		for(Position defended : defends) {
-			positionDefendersMap.computeIfAbsent(position, key -> new ArrayList<>()).add((defended));
+			positionDefendersMap.computeIfAbsent(defended, key -> new ArrayList<>()).add((position));
 			setThreatenedBy(position.getSide(), defended.getX(), defended.getY());
 		}
 	}
