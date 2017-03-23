@@ -72,4 +72,20 @@ public class Move {
 		
 		return result.toString();
 	}
+	
+	public String toNotationString() {
+		StringBuilder result = new StringBuilder();
+		result.append(source);
+		if (kill != null) {
+			result.append("x");
+			result.append(kill.getCharacter());
+		}
+		result.append(Board.toPositionString(targetX, targetY));
+		if (convert != null) {
+			result.append("=");
+			result.append(convert.getCharacter(source.getSide()));
+		}
+		
+		return result.toString();
+	}
 }
