@@ -105,7 +105,7 @@ public class ChessEngineDiagram {
 				int pixelX = toFieldPixelX(x);
 				int pixelY = toFieldPixelY(y);
 				
-				boolean whiteBackground = ((pixelX + pixelY) % 2) == 0;
+				boolean whiteBackground = ((pixelX + pixelY) % 2) != 0;
 				Color color = whiteBackground ? LIGHT_BACKGROUND_COLOR : DARK_BACKGROUND_COLOR;
 				graphics.setColor(color);
 				graphics.fillRect(pixelX, pixelY, FIELD_PIXELS, FIELD_PIXELS);
