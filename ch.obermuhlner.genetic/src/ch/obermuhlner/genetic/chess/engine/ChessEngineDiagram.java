@@ -19,6 +19,8 @@ import ch.obermuhlner.genetic.chess.engine.MonteCarloChessEngine.MoveValue;
 
 public class ChessEngineDiagram {
 
+	private static final int DEFAULT_THINK_MILLISECONDS = 1000;
+
 	private static final String[] PIECE_NAMES = {
 			"black_pawn", "black_knight", "black_bishop", "black_rook", "black_queen", "black_king",
 			"white_pawn", "white_knight", "white_bishop", "white_rook", "white_queen", "white_king"
@@ -28,6 +30,8 @@ public class ChessEngineDiagram {
 
 	private static final int IMAGE_OFFSET = (FIELD_PIXELS - 45) / 2;
 	
+	private static final int THICKNESS_FACTOR = 40;
+
 	private static final MonteCarloChessEngine chessEngine = new MonteCarloChessEngine();
 
 	private static final Color LIGHT_BACKGROUND_COLOR = new Color(181, 136, 99);
@@ -45,7 +49,7 @@ public class ChessEngineDiagram {
 
 	public static void main(String[] args) {
 		String fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
-		long thinkMilliseconds = 1000;
+		long thinkMilliseconds = DEFAULT_THINK_MILLISECONDS;
 		String diagramFileName = null;
 		
 		if (args.length >= 1) {
@@ -61,7 +65,7 @@ public class ChessEngineDiagram {
 		Board board = new Board();
 		board.setFenString(fen);
 		
-		List<MoveValue> allMoves = chessEngine.getAllMoves(board, thinkMilliseconds);
+		List<MoveValue> allMoves = chessEngine.getAllMoves(board, thinkMilliseconds, 50);
 		
 		for (MoveValue moveValue : allMoves) {
 			System.out.printf("%8.5f %s\n", moveValue.value, moveValue.move.toNotationString());
@@ -98,8 +102,8 @@ public class ChessEngineDiagram {
 		
 		for (int x = 0; x < 8; x++) {
 			for (int y = 0; y < 8; y++) {
-				int pixelX = x * FIELD_PIXELS;
-				int pixelY = y * FIELD_PIXELS;
+				int pixelX = toFieldPixelX(x);
+				int pixelY = toFieldPixelY(y);
 				
 				boolean whiteBackground = ((pixelX + pixelY) % 2) == 0;
 				Color color = whiteBackground ? LIGHT_BACKGROUND_COLOR : DARK_BACKGROUND_COLOR;
@@ -129,14 +133,14 @@ public class ChessEngineDiagram {
 			graphics.setColor(color);
 
 			int[] xPoints = {
-					toCenterPixels(sourceX) - thickness,
-					toCenterPixels(sourceX) + thickness,
-					toCenterPixels(targetX)
+					toFieldCenterPixelX(sourceX) - thickness,
+					toFieldCenterPixelX(sourceX) + thickness,
+					toFieldCenterPixelX(targetX)
 			};
 			int[] yPoints = {
-					toCenterPixels(sourceY),
-					toCenterPixels(sourceY),
-					toCenterPixels(targetY)
+					toFieldCenterPixelY(sourceY),
+					toFieldCenterPixelY(sourceY),
+					toFieldCenterPixelY(targetY)
 			};
 			int nPoints = 3;
 			graphics.fillPolygon(xPoints, yPoints, nPoints);
@@ -151,7 +155,7 @@ public class ChessEngineDiagram {
 	}
 
 	private static int valueToThickness(double value) {
-		double thickness = Math.min(5, Math.abs(value) * 40);
+		double thickness = Math.min(FIELD_PIXELS / 2, Math.abs(value) * THICKNESS_FACTOR);
 		return (int) (thickness + 0.5);
 	}
 
@@ -159,8 +163,20 @@ public class ChessEngineDiagram {
 		return value >= 0 ? COLOR_GREEN : COLOR_RED;
 	}
 
-	private static int toCenterPixels(int fieldIndex) {
-		return fieldIndex * FIELD_PIXELS + FIELD_PIXELS / 2;
+	private static int toFieldPixelX(int x) {
+		return x * FIELD_PIXELS;
+	}
+
+	private static int toFieldPixelY(int y) {
+		return (7 - y) * FIELD_PIXELS;
+	}
+
+	private static int toFieldCenterPixelX(int x) {
+		return x * FIELD_PIXELS + FIELD_PIXELS / 2;
+	}
+
+	private static int toFieldCenterPixelY(int y) {
+		return (7 - y) * FIELD_PIXELS + FIELD_PIXELS / 2;
 	}
 
 	private static String toPieceName(Position position) {
