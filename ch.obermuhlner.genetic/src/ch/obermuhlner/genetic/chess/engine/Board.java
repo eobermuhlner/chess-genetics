@@ -301,11 +301,11 @@ public class Board {
 	private boolean isStillInCheck(Move move) {
 		return getAnalysis().getAttackers(move.getSource()).stream()
 			.anyMatch(position -> {
-				return canMoveTo(position, move.getTargetX(), move.getTargetY());
+				return canAttackTo(position, move.getTargetX(), move.getTargetY());
 			});
 	}
 
-	private boolean canMoveTo(Position position, int targetX, int targetY) {
+	private boolean canAttackTo(Position position, int targetX, int targetY) {
 		int deltaX = position.getX() - targetX;
 		int deltaY = position.getY() - targetY;
 
@@ -318,6 +318,8 @@ public class Board {
 			return (deltaX == 0 && deltaY != 0) || (deltaX != 0 && deltaY == 0);
 		case King:
 			return (deltaX >= -1 && deltaX <= 1) && (deltaY >= -1 && deltaX <= 1);
+		case Pawn:
+			return (deltaX == -1 || deltaX == 1) && deltaY == getPawnDirection(position.getSide());
 		default:
 			throw new UnsupportedOperationException("Not implemented");
 		}
