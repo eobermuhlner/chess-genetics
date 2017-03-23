@@ -5,16 +5,16 @@ public enum Piece {
 	Pawn('p', 1, 4, 2) {
 		public double getValue(Side side, int x, int y) {
 			double value = super.getValue(side, x, y);
-			value *= 0.9 + getPawnLine(side, y) * 0.2;
-			value *= 0.98 + PAWN_VALUE_X[x];
+			value *= PAWN_VALUE_Y[getPawnLine(side, y)];
+			value *= PAWN_VALUE_X[x];
 			return value;
 		}		
 	},
 	Knight('n', 3, 8, 8) {
 		public double getValue(Side side, int x, int y) {
 			double value = super.getValue(side, x, y);
-			value *= 0.98 + KNIGHT_VALUE_XY[x];
-			value *= 0.98 + KNIGHT_VALUE_XY[x];
+			value *= KNIGHT_VALUE_XY[x];
+			value *= KNIGHT_VALUE_XY[x];
 			return value;
 		}		
 	},
@@ -73,6 +73,7 @@ public enum Piece {
 		throw new IllegalArgumentException("Unknown side: " + side);
 	}
 	
-	private static final double PAWN_VALUE_X[] = { 0.0, 0.01, 0.02, 0.05, 0.05, 0.02, 0.01, 0.0 };
-	private static final double KNIGHT_VALUE_XY[] = { 0.0, 0.01, 0.02, 0.05, 0.05, 0.02, 0.01, 0.0 };
+	private static final double PAWN_VALUE_X[] = { 1.0, 1.02, 1.05, 1.08, 1.08, 1.05, 1.02, 1.01 };
+	private static final double PAWN_VALUE_Y[] = { 1.0, 1.1, 1.3, 1.6, 2.0, 2.5, 3.1, 3.8 };
+	private static final double KNIGHT_VALUE_XY[] = { 0.8, 0.9, 1.0, 1.1, 1.1, 1.0, 0.9, 0.8 };
 }
