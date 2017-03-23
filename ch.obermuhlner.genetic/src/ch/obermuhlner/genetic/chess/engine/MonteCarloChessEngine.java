@@ -5,10 +5,44 @@ import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
 
-public class MonteCarloChessEngine {
+public class MonteCarloChessEngine implements ChessEngine {
 
 	private final Random random = new Random();
 
+	private Board board;
+
+	@Override
+	public void setStartPosition() {
+		board = new Board();
+		board.setStartPosition();
+	}
+
+	@Override
+	public void setFen(String fen) {
+		board = new Board();
+		board.setFenString(fen);
+	}
+
+	@Override
+	public double evaluate() {
+		return board.getValue();
+	}
+
+	@Override
+	public String bestMove(long thinkMilliseconds) {
+		Move move = getBestMove(board, thinkMilliseconds);
+		if (move == null) {
+			return null;
+		}
+		
+		return move.getSource().getPositionString() + move.getTargetPositionString();
+	}
+
+	@Override
+	public void move(String move) {
+		
+	}
+	
 	public double evaluatePosition(Board board) {
 		return board.getValue();
 	}
@@ -205,7 +239,7 @@ public class MonteCarloChessEngine {
 //		double value = chessEngine.evaluatePlaying(board, 1000, 100);
 //		System.out.println("VALUE " + value);
 		
-		Move bestMove = chessEngine.getBestMove(board, 1000);
+		Move bestMove = chessEngine.getBestMove(board, 10000);
 		System.out.println("BEST " + bestMove);
 		
 		long endMillis = System.currentTimeMillis();
