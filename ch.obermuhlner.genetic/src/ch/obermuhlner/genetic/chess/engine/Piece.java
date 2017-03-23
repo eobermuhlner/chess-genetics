@@ -14,7 +14,7 @@ public enum Piece {
 		public double getValue(Side side, int x, int y) {
 			double value = super.getValue(side, x, y);
 			value *= KNIGHT_VALUE_XY[x];
-			value *= KNIGHT_VALUE_XY[x];
+			value *= KNIGHT_VALUE_XY[y];
 			return value;
 		}		
 	},
@@ -73,7 +73,7 @@ public enum Piece {
 		throw new IllegalArgumentException("Unknown side: " + side);
 	}
 	
-	private static final double PAWN_VALUE_X[] = { 1.0, 1.02, 1.05, 1.08, 1.08, 1.05, 1.02, 1.01 };
+	private static final double PAWN_VALUE_X[] = { 1.0, 1.02, 1.05, 1.08, 1.08, 1.05, 1.02, 1.0 };
 	private static final double PAWN_VALUE_Y[] = { 1.0, 1.1, 1.3, 1.6, 2.0, 2.5, 3.1, 3.8 };
-	private static final double KNIGHT_VALUE_XY[] = { 0.8, 0.9, 1.0, 1.1, 1.1, 1.0, 0.9, 0.8 };
+	private static final double KNIGHT_VALUE_XY[] = { 1.0, 1.01, 1.03, 1.05, 1.05, 1.03, 1.01, 1.0 };
 }
