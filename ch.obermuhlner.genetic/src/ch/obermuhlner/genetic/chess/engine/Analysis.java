@@ -62,6 +62,51 @@ public class Analysis {
 		}
 		
 		analyseKingToMove(board);
+		
+//		positionMovesMap.values().stream()
+//			.forEach(moves -> {
+//				moves.stream()
+//					.forEach(move -> {
+//						move.calculateValue(this);
+//					});
+//			});
+	}
+
+	public double getValue(Position position) {
+		double value = position.getPiece().getValue(position.getSide(), position.getX(), position.getY());
+		
+		switch(position.getPiece()) {
+		case Knight:
+		case Bishop:
+		case Rook:
+		case Queen:
+			value *= 0.9 + getMobilityFactor(position) * 0.1;
+			break;
+		default:
+		}
+		
+		value *= 0.9 + getAttacksFactor(position) * 0.2;
+		value *= 0.9 + getDefendsFactor(position) * 0.15;
+		
+		value *= 1.0 - getAttackedFactor(position) * 0.1;
+		
+		return value;
+	}
+	
+	private double getMobilityFactor(Position position) {
+		return (double) getMoves(position).size() / position.getPiece().getMaxMoves();
+	}
+
+	private double getAttacksFactor(Position position) {
+		return (double) getAttacks(position).size() / position.getPiece().getMaxAttacks();
+	}
+
+	private double getDefendsFactor(Position position) {
+		return (double) getDefends(position).size() / position.getPiece().getMaxAttacks();
+	}
+
+	private double getAttackedFactor(Position position) {
+		return (double) getAttackers(position).size() / 16;
 	}
 
 	private void analysePosition(Position position) {

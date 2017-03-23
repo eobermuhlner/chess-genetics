@@ -224,50 +224,13 @@ public class Board {
 
 		value += positions.stream()
 				.filter(position -> position.getSide() == side)
-				.mapToDouble(position -> getValue(position))
+				.mapToDouble(position -> getAnalysis().getValue(position))
 				.sum();
 		
 		
 		return value;
 	}
 	
-	private double getValue(Position position) {
-		double value = position.getPiece().getValue(position.getSide(), position.getX(), position.getY());
-		
-		switch(position.getPiece()) {
-		case Knight:
-		case Bishop:
-		case Rook:
-		case Queen:
-			value *= 0.9 + getMobilityFactor(position) * 0.1;
-			break;
-		default:
-		}
-		
-		value *= 0.9 + getAttacksFactor(position) * 0.2;
-		value *= 0.9 + getDefendsFactor(position) * 0.15;
-		
-		value *= 1.0 - getAttackedFactor(position) * 0.1;
-		
-		return value;
-	}
-	
-	private double getMobilityFactor(Position position) {
-		return (double) getAnalysis().getMoves(position).size() / position.getPiece().getMaxMoves();
-	}
-
-	private double getAttacksFactor(Position position) {
-		return (double) getAnalysis().getAttacks(position).size() / position.getPiece().getMaxAttacks();
-	}
-
-	private double getDefendsFactor(Position position) {
-		return (double) getAnalysis().getDefends(position).size() / position.getPiece().getMaxAttacks();
-	}
-
-	private double getAttackedFactor(Position position) {
-		return (double) getAnalysis().getAttackers(position).size() / 16;
-	}
-
 	public List<Move> getAllMoves() {
 		if (isCheck()) {
 			return getAllMovesUnderCheck();
