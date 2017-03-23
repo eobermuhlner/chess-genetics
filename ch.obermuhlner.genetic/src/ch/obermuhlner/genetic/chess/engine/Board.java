@@ -321,7 +321,9 @@ public class Board {
 		case Pawn:
 			return (deltaX == -1 || deltaX == 1) && deltaY == getPawnDirection(position.getSide());
 		default:
-			throw new UnsupportedOperationException("Not implemented");
+			// TODO implement missing pieces
+			return false;
+			//throw new UnsupportedOperationException("Not implemented");
 		}
 	}
 
@@ -383,7 +385,8 @@ public class Board {
 	}
 
 	public void move(Move move) {
-		CheckArgument.isTrue(move.getKill() == null || move.getKill().getPiece() != Piece.King, () -> "King cannot be killed: " + move);
+		// TODO validate input
+		//CheckArgument.isTrue(move.getKill() == null || move.getKill().getPiece() != Piece.King, () -> "King cannot be killed: " + move);
 		
 		positions.remove(move.getSource());
 		positions.remove(move.getKill());
