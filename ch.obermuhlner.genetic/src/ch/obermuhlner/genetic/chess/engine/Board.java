@@ -5,8 +5,6 @@ import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
 
-import ch.obermuhlner.util.CheckArgument;
-
 public class Board {
 
 	private static final char[] LETTERS = { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h' };
@@ -234,21 +232,16 @@ public class Board {
 	}
 	
 	private double getValue(Position position) {
-		double value = position.getPiece().getValue();
+		double value = position.getPiece().getValue(position.getSide(), position.getX(), position.getY());
 		
 		switch(position.getPiece()) {
-		case Pawn:
-			value *= 0.9 + getPawnLine(position) * 0.2;
-			value *= 0.98 + getPawnValueX(position);
-			break;
-		case King:
-			break;
 		case Knight:
 		case Bishop:
 		case Rook:
 		case Queen:
 			value *= 0.9 + getMobilityFactor(position) * 0.1;
 			break;
+		default:
 		}
 		
 		value *= 0.9 + getAttacksFactor(position) * 0.2;
@@ -337,21 +330,6 @@ public class Board {
 	private boolean moveWillLeaveInCheck(Position position) {
 		// TODO Auto-generated method stub
 		return false;
-	}
-
-	private static int getPawnLine(Position position) {
-		switch(position.getSide()) {
-		case White:
-			return position.getY();
-		case Black:
-			return 7 - position.getY();
-		}
-		throw new IllegalArgumentException("Unknown side: " + position.getSide());
-	}
-	
-	private static final double PAWN_VALUE_X[] = { 0.0, 0.01, 0.02, 0.05, 0.05, 0.02, 0.01, 0.0 };
-	private static double getPawnValueX(Position position) {
-		return PAWN_VALUE_X[position.getX()];
 	}
 
 	static int getPawnDirection(Side side) {
