@@ -285,9 +285,9 @@ public class Board {
 		List<Move> moves = new ArrayList<>();
 		
 		moves.addAll(positions.stream()
-			.filter(position -> position.getSide() == sideToMove)
-			.filter(position -> position.getPiece() == Piece.King)
+			.filter(position -> position.getSide() == sideToMove && position.getPiece() == Piece.King)
 			.flatMap(position -> getAnalysis().getMoves(position).stream())
+			.filter(move -> !isStillInCheck(move))
 			.collect(Collectors.toList()));
 		
 		// TODO find moves that kill checking piece
@@ -296,16 +296,36 @@ public class Board {
 		return moves;
 	}
 
+	private boolean isStillInCheck(Move move) {
+		return getAnalysis().getAttackers(move.getSource()).stream()
+			.anyMatch(position -> {
+				return canMoveTo(position, move.getTargetX(), move.getTargetY());
+			});
+	}
+
+	private boolean canMoveTo(Position position, int targetX, int targetY) {
+		int deltaX = position.getX() - targetX;
+		int deltaY = position.getY() - targetY;
+
+		switch(position.getPiece()) {
+		case Bishop:
+			return (deltaX == deltaY) || (deltaX == -deltaY);
+		case Queen:
+			return (deltaX == 0 && deltaY != 0) || (deltaX != 0 && deltaY == 0) || (deltaX == deltaY) || (deltaX == -deltaY);
+		case Rook:
+			return (deltaX == 0 && deltaY != 0) || (deltaX != 0 && deltaY == 0);
+		case King:
+			return (deltaX >= -1 && deltaX <= 1) && (deltaY >= -1 && deltaX <= 1);
+		default:
+			throw new UnsupportedOperationException("Not implemented");
+		}
+	}
+
 	private List<Move> getAllMovesNormal() {
-		List<Move> moves = new ArrayList<>();
-
-		moves.addAll(positions.stream()
-				.filter(position -> position.getSide() == sideToMove)
-				.filter(position -> !moveWillLeaveInCheck(position))
+		return positions.stream()
+				.filter(position -> position.getSide() == sideToMove && !moveWillLeaveInCheck(position))
 				.flatMap(position -> getAnalysis().getMoves(position).stream())
-				.collect(Collectors.toList()));
-
-		return moves;
+				.collect(Collectors.toList());
 	}
 	
 	private boolean moveWillLeaveInCheck(Position position) {
@@ -359,8 +379,16 @@ public class Board {
 	}
 
 	public void move(Move move) {
-		Position source = move.getSource();
-		move(source.getX(), source.getY(), move.getTargetX(), move.getTargetY(), move.getConvert());
+		positions.remove(move.getSource());
+		positions.remove(move.getKill());
+		
+		Piece piece = move.getConvert() == null ? move.getSource().getPiece() : move.getConvert();
+		Position newPosition = new Position(piece, move.getSource().getSide(), move.getTargetX(), move.getTargetY());
+		
+		positions.add(newPosition);
+		sideToMove = sideToMove.otherSide();
+		
+		invalidateAnalysis();
 	}
 
 	public void move(int sourceX, int sourceY, int targetX, int targetY) {
@@ -372,16 +400,12 @@ public class Board {
 				.filter(position -> position.getX() == sourceX && position.getY() == sourceY)
 				.findAny()
 				.get();
-		positions.remove(source);
-		positions.removeIf(position -> position.getX() == targetX && position.getY() == targetY);
-		
-		Piece piece = convert == null ? source.getPiece() : convert;
-		Position newPosition = new Position(piece, source.getSide(), targetX, targetY);
+		Position target = positions.stream()
+				.filter(position -> position.getX() == targetX && position.getY() == targetY)
+				.findAny()
+				.orElse(null);
 
-		positions.add(newPosition);
-		sideToMove = sideToMove.otherSide();
-		
-		invalidateAnalysis();
+		move(new Move(source, targetX, targetY, target, convert));
 	}
 
 	public Board clone() {
