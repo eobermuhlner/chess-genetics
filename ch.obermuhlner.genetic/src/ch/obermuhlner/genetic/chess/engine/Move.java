@@ -6,6 +6,7 @@ public class Move {
 	private final int targetY;
 	private final Position kill;
 	private final Piece convert;
+	private final double value;
 	
 	public Move(Position source, int targetX, int targetY, Position kill) {
 		this(source, targetX, targetY, kill, null);
@@ -17,6 +18,8 @@ public class Move {
 		this.targetY = targetY;
 		this.kill = kill;
 		this.convert = convert;
+		
+		value = calculateMoveValue();
 	}
 	
 	public Position getSource() {
@@ -44,33 +47,27 @@ public class Move {
 	}
 	
 	public double getValue() {
+		return value; 
+	}
+	
+	private double calculateMoveValue() {
+		double result = 1.0;
+		
+		result -= source.getPiece().getValue(source.getSide(), source.getX(), source.getY());
+		result += source.getPiece().getValue(source.getSide(), targetX, targetY);
+		
 		if (kill != null) {
-			return kill.getPiece().getValue(kill.getSide(), kill.getX(), kill.getY());
+			result += kill.getPiece().getValue(kill.getSide(), kill.getX(), kill.getY());
 		}
 		if (convert != null) {
-			return convert.getValue(source.getSide(), source.getX(), source.getY());
+			result += convert.getValue(source.getSide(), source.getX(), source.getY());
 		}
-		return 0.1;
+		return result;
 	}
 
 	@Override
 	public String toString() {
-		StringBuilder result = new StringBuilder();
-		result.append(source);
-		result.append(Board.toPositionString(targetX, targetY));
-		if (kill != null) {
-			result.append("x");
-			result.append(kill);
-		}
-		if (convert != null) {
-			result.append("=");
-			result.append(convert.getCharacter(source.getSide()));
-		}
-		result.append("(");
-		result.append(getValue());
-		result.append(")");
-		
-		return result.toString();
+		return toNotationString();
 	}
 	
 	public String toNotationString() {
@@ -85,6 +82,9 @@ public class Move {
 			result.append("=");
 			result.append(convert.getCharacter(source.getSide()));
 		}
+		result.append("(");
+		result.append(String.format("%4.3f", getValue()));
+		result.append(")");
 		
 		return result.toString();
 	}
