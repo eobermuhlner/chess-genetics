@@ -1,9 +1,9 @@
 package ch.obermuhlner.genetic.chess.engine;
 
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.awt.image.ImageObserver;
 import java.io.File;
@@ -29,6 +29,12 @@ public class ChessEngineDiagram {
 	private static final int IMAGE_OFFSET = (FIELD_PIXELS - 45) / 2;
 	
 	private static final MonteCarloChessEngine chessEngine = new MonteCarloChessEngine();
+
+	private static final Color LIGHT_BACKGROUND_COLOR = new Color(181, 136, 99);
+	private static final Color DARK_BACKGROUND_COLOR = new Color(240, 217, 181);
+	private static final Color COLOR_RED = new Color(255, 0, 0, 150);
+	private static final Color COLOR_GREEN = new Color(0, 255, 0, 150);
+
 
 	private static ImageObserver imageObserver = new ImageObserver() {
 		@Override
@@ -84,19 +90,19 @@ public class ChessEngineDiagram {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
-		Color lightBackgroundColor = new Color(181, 136, 99);
-		Color darkBackgroundColor = new Color(240, 217, 181);
-		
+				
 		BufferedImage image = new BufferedImage(FIELD_PIXELS * 8, FIELD_PIXELS * 8, BufferedImage.TYPE_INT_RGB);
 		Graphics2D graphics = image.createGraphics();
+		graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		graphics.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+		
 		for (int x = 0; x < 8; x++) {
 			for (int y = 0; y < 8; y++) {
 				int pixelX = x * FIELD_PIXELS;
 				int pixelY = y * FIELD_PIXELS;
 				
 				boolean whiteBackground = ((pixelX + pixelY) % 2) == 0;
-				Color color = whiteBackground ? lightBackgroundColor : darkBackgroundColor;
+				Color color = whiteBackground ? LIGHT_BACKGROUND_COLOR : DARK_BACKGROUND_COLOR;
 				graphics.setColor(color);
 				graphics.fillRect(pixelX, pixelY, FIELD_PIXELS, FIELD_PIXELS);
 				
@@ -150,7 +156,7 @@ public class ChessEngineDiagram {
 	}
 
 	private static Color valueToColor(double value) {
-		return value >= 0 ? Color.GREEN : Color.RED;
+		return value >= 0 ? COLOR_GREEN : COLOR_RED;
 	}
 
 	private static int toCenterPixels(int fieldIndex) {
