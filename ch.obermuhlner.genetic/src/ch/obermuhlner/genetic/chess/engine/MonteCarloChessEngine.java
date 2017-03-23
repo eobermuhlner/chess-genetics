@@ -9,6 +9,16 @@ public class MonteCarloChessEngine implements ChessEngine {
 
 	private final Random random = new Random();
 
+	public static class MoveValue {
+		public final Move move;
+		public final double value;
+		
+		public MoveValue(Move move, double value) {
+			this.move = move;
+			this.value = value;
+		}
+	}
+
 	private Board board;
 
 	@Override
@@ -42,7 +52,7 @@ public class MonteCarloChessEngine implements ChessEngine {
 	public void move(String move) {
 		
 	}
-	
+
 	public double evaluatePosition(Board board) {
 		return board.getValue();
 	}
@@ -86,49 +96,105 @@ public class MonteCarloChessEngine implements ChessEngine {
 		
 		return findBestMove(board, moveStatistics, thinkMilliseconds);
 	}
-	
-	private Move findBestMove(Board board, List<MoveStatistic> moveStatistics, long thinkMilliseconds) {
+
+	public List<MoveValue> getAllMoves(Board board, long thinkMilliseconds) {
+		List<Move> allMoves = board.getAllMoves();
+		if (allMoves.isEmpty()) {
+			return null;
+		}
+		
+		List<MoveStatistic> moveStatistics = allMoves.stream()
+			.map(move -> new MoveStatistic(move))
+			.collect(Collectors.toList());
+
 		int moveCount = 200;
-		long averagePlayMillis = 100;
 		
 		while (thinkMilliseconds > 0) {
-			moveStatistics = reduceStatistics(moveStatistics, thinkMilliseconds, averagePlayMillis);
+			long startMillis = System.currentTimeMillis();
+			
+			for (MoveStatistic moveStatistic : moveStatistics) {
+				play(board, moveStatistic, moveCount);
+			}
+			
+			long endMillis = System.currentTimeMillis();
+			long deltaMillis = endMillis - startMillis;
+			thinkMilliseconds -= deltaMillis;
+		}
+		
+		sortStatistics(moveStatistics);
+		
+		List<MoveValue> result = new ArrayList<>();
+		for (MoveStatistic moveStatistic : moveStatistics) {
+			result.add(new MoveValue(moveStatistic.move, moveStatistic.getValue()));
+		}		
+		return result;
+	}
+
+	private Move findBestMove(Board board, List<MoveStatistic> moveStatistics, long thinkMilliseconds) {
+		int moveCount = 200;
+		long averagePlayMillis = 10;
+		
+		long reductionMilliseconds = thinkMilliseconds / 2;
+		
+		while (thinkMilliseconds > 0) {
+			moveStatistics = reduceStatistics(moveStatistics, thinkMilliseconds, reductionMilliseconds, averagePlayMillis);
 			
 			long thinkStartMillis = System.currentTimeMillis();
 
 			for (MoveStatistic moveStatistic : moveStatistics) {
-				Board localBoard = board.clone();
-				localBoard.move(moveStatistic.move);
-				
-				Side winningSide = playGame(localBoard, moveCount);
-
-				moveStatistic.playCount++;
-				if (winningSide == Side.White) {
-					moveStatistic.whiteWins++;
-				}
-				if (winningSide == Side.Black) {
-					moveStatistic.blackWins++;
-				}
+				play(board, moveStatistic, moveCount);
 			}
 			
 			long thinkEndMillis = System.currentTimeMillis();
-			thinkMilliseconds -= thinkEndMillis - thinkStartMillis;
+			long thinkDeltaMillis = thinkEndMillis - thinkStartMillis;
+			thinkMilliseconds -= thinkDeltaMillis;
 			
-			averagePlayMillis = thinkMilliseconds / moveStatistics.size();
+			averagePlayMillis = thinkDeltaMillis / moveStatistics.size();
+			//System.out.println("TIME   remaining " + thinkMilliseconds + " ms, thought " + thinkDeltaMillis + " ms, average " + averagePlayMillis + " ms");
 		}
 		
+		sortStatistics(moveStatistics);
+		
+		System.out.println("BEST   " + moveStatistics.get(0));
 		return moveStatistics.get(0).move;
 	}
 
-	private List<MoveStatistic> reduceStatistics(List<MoveStatistic> moveStatistics, long thinkMilliseconds, long averagePlayMillis) {
+	private void play(Board board, MoveStatistic moveStatistic, int moveCount) {
+		Board localBoard = board.clone();
+		localBoard.move(moveStatistic.move);
+		
+		Side winningSide = playGame(localBoard, moveCount);
+
+		moveStatistic.playCount++;
+		if (winningSide == Side.White) {
+			moveStatistic.whiteWins++;
+		}
+		if (winningSide == Side.Black) {
+			moveStatistic.blackWins++;
+		}
+	}
+
+	private List<MoveStatistic> reduceStatistics(List<MoveStatistic> moveStatistics, long thinkMilliseconds, long reductionMilliseconds, long averagePlayMillis) {
 		int currentSize = moveStatistics.size();
 		int optimumSize;
-		if (averagePlayMillis * currentSize * 2 < thinkMilliseconds) {
+		if (averagePlayMillis * currentSize * 2 < Math.min(thinkMilliseconds, reductionMilliseconds)) {
 			optimumSize = currentSize;
 		} else {
 			optimumSize = Math.min(currentSize, Math.max(5, currentSize / 2));
 		}
 		
+		if (optimumSize == currentSize) {
+			sortStatistics(moveStatistics);
+			System.out.println("KEEP   " + currentSize + " moves : " + moveStatistics.get(0) + " with average " + averagePlayMillis + " ms");
+			return moveStatistics;
+		} else {
+			sortStatistics(moveStatistics);
+			System.out.println("REDUCE " + currentSize + " to " + optimumSize + " moves : " + moveStatistics.get(0) + " with average " + averagePlayMillis + " ms");
+			return new ArrayList<>(moveStatistics.subList(0, optimumSize));
+		}
+	}
+
+	private void sortStatistics(List<MoveStatistic> moveStatistics) {
 		moveStatistics.sort((move1, move2) -> {
 			int compare = Double.compare(move1.getValue(), move2.getValue());
 			if (compare == 0) {
@@ -136,13 +202,6 @@ public class MonteCarloChessEngine implements ChessEngine {
 			}
 			return compare;
 		});
-		
-		System.out.println("REDUCE " + currentSize + " to " + optimumSize + " moves : " + moveStatistics.get(0) + " with average " + averagePlayMillis + " ms");
-		
-		if (optimumSize == currentSize) {
-			return moveStatistics;
-		}
-		return new ArrayList<>(moveStatistics.subList(0, optimumSize));
 	}
 
 	private static class MoveStatistic {
