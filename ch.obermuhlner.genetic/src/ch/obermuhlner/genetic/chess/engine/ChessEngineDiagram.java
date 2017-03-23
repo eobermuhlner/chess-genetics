@@ -19,7 +19,7 @@ import ch.obermuhlner.genetic.chess.engine.MonteCarloChessEngine.MoveValue;
 
 public class ChessEngineDiagram {
 
-	private static final int DEFAULT_THINK_MILLISECONDS = 1000;
+	private static final int DEFAULT_THINK_MILLISECONDS = 10000;
 
 	private static final String[] PIECE_NAMES = {
 			"black_pawn", "black_knight", "black_bishop", "black_rook", "black_queen", "black_king",
@@ -27,8 +27,8 @@ public class ChessEngineDiagram {
 			};
 	
 	private static final int FIELD_PIXELS = 55;
-
 	private static final int IMAGE_OFFSET = (FIELD_PIXELS - 45) / 2;
+	private static final int CIRCLE_RADIUS_PIXELS = 3;
 	
 	private static final int THICKNESS_FACTOR = 40;
 
@@ -99,6 +99,7 @@ public class ChessEngineDiagram {
 		Graphics2D graphics = image.createGraphics();
 		graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		graphics.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+		graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
 		
 		for (int x = 0; x < 8; x++) {
 			for (int y = 0; y < 8; y++) {
@@ -142,8 +143,10 @@ public class ChessEngineDiagram {
 					toFieldCenterPixelY(sourceY),
 					toFieldCenterPixelY(targetY)
 			};
-			int nPoints = 3;
-			graphics.fillPolygon(xPoints, yPoints, nPoints);
+			graphics.fillPolygon(xPoints, yPoints, xPoints.length);
+			
+			graphics.drawLine(toFieldCenterPixelX(sourceX), toFieldCenterPixelY(sourceY), toFieldCenterPixelX(targetX), toFieldCenterPixelY(targetY));
+			graphics.fillOval(toFieldCenterPixelX(targetX) - CIRCLE_RADIUS_PIXELS, toFieldCenterPixelY(targetY) - CIRCLE_RADIUS_PIXELS, 2*CIRCLE_RADIUS_PIXELS, 2*CIRCLE_RADIUS_PIXELS);
 		}
 		
 		try {
@@ -156,7 +159,7 @@ public class ChessEngineDiagram {
 
 	private static int valueToThickness(double value) {
 		double thickness = Math.min(FIELD_PIXELS / 2, Math.abs(value) * THICKNESS_FACTOR);
-		return (int) (thickness + 0.5);
+		return Math.max(1, (int) (thickness + 0.5));
 	}
 
 	private static Color valueToColor(double value) {
