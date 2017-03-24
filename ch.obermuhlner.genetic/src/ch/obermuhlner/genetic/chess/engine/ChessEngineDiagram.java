@@ -173,7 +173,7 @@ public class ChessEngineDiagram {
 
 	private static int valueToThickness(double value) {
 		double thickness = Math.min(FIELD_PIXELS / 2, Math.abs(value) * THICKNESS_FACTOR);
-		return Math.max(1, (int) (thickness + 0.5));
+		return Math.max(1, toInt(thickness));
 	}
 
 	private static Color valueToColor(double value) {
