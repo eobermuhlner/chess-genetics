@@ -19,7 +19,7 @@ import ch.obermuhlner.genetic.chess.engine.MonteCarloChessEngine.MoveValue;
 
 public class ChessEngineDiagram {
 
-	private static final int DEFAULT_THINK_MILLISECONDS = 10000;
+	private static final int DEFAULT_THINK_MILLISECONDS = 1000;
 
 	private static final String[] PIECE_NAMES = {
 			"black_pawn", "black_knight", "black_bishop", "black_rook", "black_queen", "black_king",
@@ -133,19 +133,29 @@ public class ChessEngineDiagram {
 		
 			graphics.setColor(color);
 
+			
+			int sourceFieldCenterPixelX = toFieldCenterPixelX(sourceX);
+			int sourceFieldCenterPixelY = toFieldCenterPixelY(sourceY);
+			int targetFieldCenterPixelX = toFieldCenterPixelX(targetX);
+			int targetFieldCenterPixelY = toFieldCenterPixelY(targetY);
+			double arrowAngle = cartesianToAngle(targetFieldCenterPixelX-sourceFieldCenterPixelX, targetFieldCenterPixelY-sourceFieldCenterPixelY);
+			int arrowBaseLeftX = toInt(polarToX(arrowAngle-Math.PI/2, thickness));
+			int arrowBaseLeftY = toInt(polarToY(arrowAngle-Math.PI/2, thickness));
+			int arrowBaseRightX = toInt(polarToX(arrowAngle+Math.PI/2, thickness));
+			int arrowBaseRightY = toInt(polarToY(arrowAngle+Math.PI/2, thickness));
 			int[] xPoints = {
-					toFieldCenterPixelX(sourceX) - thickness,
-					toFieldCenterPixelX(sourceX) + thickness,
-					toFieldCenterPixelX(targetX)
+					sourceFieldCenterPixelX + arrowBaseLeftX,
+					sourceFieldCenterPixelX + arrowBaseRightX,
+					targetFieldCenterPixelX
 			};
 			int[] yPoints = {
-					toFieldCenterPixelY(sourceY),
-					toFieldCenterPixelY(sourceY),
-					toFieldCenterPixelY(targetY)
+					sourceFieldCenterPixelY + arrowBaseLeftY,
+					sourceFieldCenterPixelY + arrowBaseRightY,
+					targetFieldCenterPixelY
 			};
 			graphics.fillPolygon(xPoints, yPoints, xPoints.length);
 			
-			graphics.drawLine(toFieldCenterPixelX(sourceX), toFieldCenterPixelY(sourceY), toFieldCenterPixelX(targetX), toFieldCenterPixelY(targetY));
+			graphics.drawLine(toFieldCenterPixelX(sourceX), sourceFieldCenterPixelY, toFieldCenterPixelX(targetX), toFieldCenterPixelY(targetY));
 			graphics.fillOval(toFieldCenterPixelX(targetX) - CIRCLE_RADIUS_PIXELS, toFieldCenterPixelY(targetY) - CIRCLE_RADIUS_PIXELS, 2*CIRCLE_RADIUS_PIXELS, 2*CIRCLE_RADIUS_PIXELS);
 		}
 		
@@ -155,6 +165,10 @@ public class ChessEngineDiagram {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	private static int toInt(double value) {
+		return (int) (value + 0.5);
 	}
 
 	private static int valueToThickness(double value) {
@@ -184,5 +198,21 @@ public class ChessEngineDiagram {
 
 	private static String toPieceName(Position position) {
 		return position.getSide().toString().toLowerCase() + "_" + position.getPiece().toString().toLowerCase();
+	}
+	
+	private static double cartesianToAngle(double x, double y) {
+		return Math.atan2(y, x);
+	}
+	
+	private static double cartesianToRadius(double x, double y) {
+		return Math.sqrt(x*x + y*y);
+	}
+	
+	private static double polarToX(double angle, double radius) {
+        return radius * Math.cos(angle);
+	}
+
+	private static double polarToY(double angle, double radius) {
+		return radius * Math.sin(angle);
 	}
 }
