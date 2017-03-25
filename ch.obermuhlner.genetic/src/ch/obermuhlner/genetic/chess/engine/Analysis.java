@@ -88,14 +88,23 @@ public class Analysis {
 		value *= 1.0 + getAttacksFactor(position) * 0.2;
 		value *= 1.0 + getDefendsFactor(position) * 0.15;
 		
+		value *= 1.0 + getDefendedFactor(position) * 0.1;
 		value *= 1.0 - getAttackedFactor(position) * 0.1;
 		
 		return value;
 	}
 
 	public double getValue(Move move) {
-		// TODO improved impl of move value using analysis
-		return move.getValue();
+		double value = move.getValue();
+		
+		if (move.getKill() != null) {
+			int defenders = getDefenders(move.getKill()).size();
+			if (defenders > 0) {
+				value -= getValue(move.getSource());
+			}
+		}
+		
+		return value;
 	}
 	
 	private double getMobilityFactor(Position position) {
@@ -112,6 +121,10 @@ public class Analysis {
 
 	private double getAttackedFactor(Position position) {
 		return (double) getAttackers(position).size() / 16;
+	}
+
+	private double getDefendedFactor(Position position) {
+		return (double) getDefenders(position).size() / 16;
 	}
 
 	private void analysePosition(Position position) {
@@ -208,7 +221,11 @@ public class Analysis {
 	public List<Position> getAttackers(Position victim) {
 		return positionAttackersMap.getOrDefault(victim, Collections.emptyList());
 	}
-	
+
+	public List<Position> getDefenders(Position victim) {
+		return positionDefendersMap.getOrDefault(victim, Collections.emptyList());
+	}
+
 	private void addAllMoves(Position position, List<Move> moves, List<Position> attacks, List<Position> defends) {
 		switch(position.getPiece()) {
 		case Pawn:
