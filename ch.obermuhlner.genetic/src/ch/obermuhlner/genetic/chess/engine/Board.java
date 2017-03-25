@@ -8,14 +8,25 @@ import java.util.stream.Collectors;
 public class Board {
 
 	private static final char[] LETTERS = { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h' };
+
+	private final InfoLogger infoLogger;
 	
 	private final List<Position> positions = new ArrayList<>();
 	
 	private Side sideToMove = Side.White;
 	
 	private Analysis analysis;
-	
+
 	public Board() {
+		this(new InfoLogger() {
+			public void infoString(String message) {
+				System.out.println(message);
+			}
+		});
+	}
+	
+	public Board(InfoLogger infoLogger) {
+		this.infoLogger = infoLogger;
 		setStartPosition();
 	}
 	
@@ -196,6 +207,10 @@ public class Board {
 		return getAnalysis().getPosition(x, y);
 	}
 	
+	public double getValue(Position position) {
+		return getAnalysis().getValue(position);
+	}
+	
 	public double getValue() {
 		return getSideValue(Side.White) - getSideValue(Side.Black);
 	}
@@ -328,7 +343,6 @@ public class Board {
 	public void move(Move move) {
 		// TODO validate input
 		//CheckArgument.isTrue(move.getKill() == null || move.getKill().getPiece() != Piece.King, () -> "King cannot be killed: " + move);
-		
 		positions.remove(move.getSource());
 		positions.remove(move.getKill());
 		
@@ -337,10 +351,24 @@ public class Board {
 		
 		positions.add(newPosition);
 		sideToMove = sideToMove.otherSide();
-		
+
 		invalidateAnalysis();
 	}
 
+	public void move(String move) {
+		char[] chars = move.toCharArray();
+		Piece convert = null;
+		if (chars.length >= 5) {
+			convert = Piece.ofCharacter(chars[4]);
+		}
+		move(
+				letterToInt(chars[0]),
+				Character.getNumericValue(chars[1]) - 1,
+				letterToInt(chars[2]),
+				Character.getNumericValue(chars[3]) - 1,
+				convert);
+	}
+	
 	public void move(int sourceX, int sourceY, int targetX, int targetY) {
 		move(sourceX, sourceY, targetX, targetY, null);
 	}

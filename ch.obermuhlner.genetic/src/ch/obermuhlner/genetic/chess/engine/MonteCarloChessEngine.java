@@ -1,6 +1,7 @@
 package ch.obermuhlner.genetic.chess.engine;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -19,17 +20,34 @@ public class MonteCarloChessEngine implements ChessEngine {
 		}
 	}
 
+	public static class PositionValue {
+		public final Position position;
+		public final double value;
+		
+		public PositionValue(Position position, double value) {
+			this.position = position;
+			this.value = value;
+		}
+	}
+
+	private InfoLogger infoLogger;
+
 	private Board board;
 
 	@Override
+	public void setInfoLogger(InfoLogger infoLogger) {
+		this.infoLogger = infoLogger;
+	}
+	
+	@Override
 	public void setStartPosition() {
-		board = new Board();
+		board = new Board(infoLogger);
 		board.setStartPosition();
 	}
 
 	@Override
 	public void setFen(String fen) {
-		board = new Board();
+		board = new Board(infoLogger);
 		board.setFenString(fen);
 	}
 
@@ -40,9 +58,10 @@ public class MonteCarloChessEngine implements ChessEngine {
 
 	@Override
 	public String bestMove(long thinkMilliseconds) {
+		infoLogger.infoString("position " + board.toFenString());
 		Move move = getBestMove(board, thinkMilliseconds);
 		if (move == null) {
-			return null;
+			return "(none)";
 		}
 		
 		return move.getSource().getPositionString() + move.getTargetPositionString();
@@ -50,7 +69,7 @@ public class MonteCarloChessEngine implements ChessEngine {
 
 	@Override
 	public void move(String move) {
-		
+		board.move(move);
 	}
 
 	public double evaluatePosition(Board board) {
@@ -97,10 +116,16 @@ public class MonteCarloChessEngine implements ChessEngine {
 		return findBestMove(board, moveStatistics, thinkMilliseconds);
 	}
 
+	public List<PositionValue> getAllPositions(Board board) {
+		return board.getPositions().stream()
+			.map(position -> new PositionValue(position, board.getValue(position)))
+			.collect(Collectors.toList());
+	}
+	
 	public List<MoveValue> getAllMoves(Board board, long thinkMilliseconds, int moveCount) {
 		List<Move> allMoves = board.getAllMoves();
 		if (allMoves.isEmpty()) {
-			return null;
+			return Collections.emptyList();
 		}
 		
 		List<MoveStatistic> moveStatistics = allMoves.stream()
@@ -121,7 +146,7 @@ public class MonteCarloChessEngine implements ChessEngine {
 		
 		sortStatistics(moveStatistics);
 		
-		System.out.println("PLAY COUNT " + moveStatistics.get(0).playCount);
+		//System.out.println("PLAY COUNT " + moveStatistics.get(0).playCount);
 		
 		List<MoveValue> result = new ArrayList<>();
 		for (MoveStatistic moveStatistic : moveStatistics) {
@@ -155,7 +180,7 @@ public class MonteCarloChessEngine implements ChessEngine {
 		
 		sortStatistics(moveStatistics);
 		
-		System.out.println("BEST   " + moveStatistics.get(0));
+		//System.out.println("BEST   " + moveStatistics.get(0));
 		return moveStatistics.get(0).move;
 	}
 
@@ -185,11 +210,11 @@ public class MonteCarloChessEngine implements ChessEngine {
 		
 		if (optimumSize == currentSize) {
 			sortStatistics(moveStatistics);
-			System.out.println("KEEP   " + currentSize + " moves : " + moveStatistics.get(0) + " with average " + averagePlayMillis + " ms");
+			//System.out.println("KEEP   " + currentSize + " moves : " + moveStatistics.get(0) + " with average " + averagePlayMillis + " ms");
 			return moveStatistics;
 		} else {
 			sortStatistics(moveStatistics);
-			System.out.println("REDUCE " + currentSize + " to " + optimumSize + " moves : " + moveStatistics.get(0) + " with average " + averagePlayMillis + " ms");
+			//System.out.println("REDUCE " + currentSize + " to " + optimumSize + " moves : " + moveStatistics.get(0) + " with average " + averagePlayMillis + " ms");
 			return new ArrayList<>(moveStatistics.subList(0, optimumSize));
 		}
 	}
@@ -299,10 +324,10 @@ public class MonteCarloChessEngine implements ChessEngine {
 //		System.out.println("VALUE " + value);
 		
 		Move bestMove = chessEngine.getBestMove(board, 10000);
-		System.out.println("BEST " + bestMove);
+		//System.out.println("BEST " + bestMove);
 		
 		long endMillis = System.currentTimeMillis();
-		System.out.println("TIME " + (endMillis - startMillis) + " ms");
+		//System.out.println("TIME " + (endMillis - startMillis) + " ms");
 
 	}
 }
