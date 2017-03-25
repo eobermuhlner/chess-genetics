@@ -20,7 +20,7 @@ public class BoardTest {
 	public void testSetFenString() {
 		Board board = new Board();
 		board.setFenString("6k1/rr1q2p1/2bnnpbp/2ppppp1/8/8/PPPPPPPP/RNBQKBNR");
-		assertEquals("6k1/rr1q2p1/2bnnpbp/2ppppp1/8/8/PPPPPPPP/RNBQKBNR", board.toFenString());
+		assertEquals("6k1/rr1q2p1/2bnnpbp/2ppppp1/8/8/PPPPPPPP/RNBQKBNR w", board.toFenString());
 	}
 	
 	@Test
