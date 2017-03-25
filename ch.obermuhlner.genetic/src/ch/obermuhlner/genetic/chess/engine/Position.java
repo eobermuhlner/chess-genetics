@@ -1,5 +1,7 @@
 package ch.obermuhlner.genetic.chess.engine;
 
+import ch.obermuhlner.util.CheckArgument;
+
 public class Position {
 	private final Piece piece;
 	private final int x;
@@ -7,6 +9,9 @@ public class Position {
 	private final Side side;
 
 	public Position(Piece piece, Side side, int x, int y) {
+		CheckArgument.isTrue(x >= 0 && x <= 7, "x " + x);
+		CheckArgument.isTrue(y >= 0 && y <= 7, "y " + y);
+
 		this.piece = piece;
 		this.x = x;
 		this.y = y;
