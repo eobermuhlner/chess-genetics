@@ -211,6 +211,10 @@ public class Board {
 		return getAnalysis().getValue(position);
 	}
 	
+	public double getValue(Move move) {
+		return getAnalysis().getValue(move); // TODO
+	}
+	
 	public double getValue() {
 		return getSideValue(Side.White) - getSideValue(Side.Black);
 	}
@@ -343,13 +347,28 @@ public class Board {
 	public void move(Move move) {
 		// TODO validate input
 		//CheckArgument.isTrue(move.getKill() == null || move.getKill().getPiece() != Piece.King, () -> "King cannot be killed: " + move);
-		positions.remove(move.getSource());
+		
+		Position source = move.getSource();
+		
+		positions.remove(source);
 		positions.remove(move.getKill());
+
+		if (source.getPiece() == Piece.King && move.getKill() != null && move.getKill().getPiece() == Piece.Rook && source.getSide() == move.getKill().getSide()) {
+			// castling (rochade)
+			int kingDirectionX = move.getKill().getX() > source.getX() ? +1 : -1;
+
+			Position newKingPosition = new Position(Piece.King, source.getSide(), source.getX() + kingDirectionX*2, source.getY());
+			positions.add(newKingPosition);
+			
+			Position newRookPosition = new Position(Piece.Rook, source.getSide(), source.getX() + kingDirectionX, source.getY());
+			positions.add(newRookPosition);
+		} else {
+			// normal move (including conversion of pawn)
+			Piece piece = move.getConvert() == null ? source.getPiece() : move.getConvert();
+			Position newPosition = new Position(piece, source.getSide(), move.getTargetX(), move.getTargetY());
+			positions.add(newPosition);
+		}
 		
-		Piece piece = move.getConvert() == null ? move.getSource().getPiece() : move.getConvert();
-		Position newPosition = new Position(piece, move.getSource().getSide(), move.getTargetX(), move.getTargetY());
-		
-		positions.add(newPosition);
 		sideToMove = sideToMove.otherSide();
 
 		invalidateAnalysis();
@@ -435,6 +454,9 @@ public class Board {
 				builder.append("/");
 			}
 		}
+		
+		builder.append(" ");
+		builder.append(sideToMove == Side.White ? "w" : "b");
 		
 		return builder.toString();
 	}

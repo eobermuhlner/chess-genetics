@@ -92,6 +92,11 @@ public class Analysis {
 		
 		return value;
 	}
+
+	public double getValue(Move move) {
+		// TODO improved impl of move value using analysis
+		return move.getValue();
+	}
 	
 	private double getMobilityFactor(Position position) {
 		return (double) getMoves(position).size() / position.getPiece().getMaxMoves();
