@@ -1,6 +1,10 @@
 package ch.obermuhlner.genetic.chess.engine;
 
+import ch.obermuhlner.util.CheckArgument;
+
 public class Move {
+	private static final double KILL_VALUE_FACTOR = 2;
+	private static final double CONVERT_VALUE_FACTOR = 3;
 	private final Position source;
 	private final int targetX;
 	private final int targetY;
@@ -13,6 +17,9 @@ public class Move {
 	}
 
 	public Move(Position source, int targetX, int targetY, Position kill, Piece convert) {
+		CheckArgument.isTrue(targetX >= 0 && targetX <= 7, "targetX " + targetX);
+		CheckArgument.isTrue(targetY >= 0 && targetY <= 7, "targetY " + targetY);
+		
 		this.source = source;
 		this.targetX = targetX;
 		this.targetY = targetY;
@@ -57,10 +64,10 @@ public class Move {
 		result += source.getPiece().getValue(source.getSide(), targetX, targetY);
 		
 		if (kill != null) {
-			result += kill.getPiece().getValue(kill.getSide(), kill.getX(), kill.getY());
+			result += kill.getPiece().getValue(kill.getSide(), kill.getX(), kill.getY()) * KILL_VALUE_FACTOR;
 		}
 		if (convert != null) {
-			result += convert.getValue(source.getSide(), source.getX(), source.getY());
+			result += convert.getValue(source.getSide(), source.getX(), source.getY()) * CONVERT_VALUE_FACTOR;
 		}
 		return result;
 	}
