@@ -80,13 +80,13 @@ public class Analysis {
 		case Bishop:
 		case Rook:
 		case Queen:
-			value *= 0.9 + getMobilityFactor(position) * 0.1;
+			value *= 1.0 + getMobilityFactor(position) * 0.1;
 			break;
 		default:
 		}
 		
-		value *= 0.9 + getAttacksFactor(position) * 0.2;
-		value *= 0.9 + getDefendsFactor(position) * 0.15;
+		value *= 1.0 + getAttacksFactor(position) * 0.2;
+		value *= 1.0 + getDefendsFactor(position) * 0.15;
 		
 		value *= 1.0 - getAttackedFactor(position) * 0.1;
 		
