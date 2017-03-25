@@ -78,10 +78,17 @@ public class Board {
 	}
 
 	public void setFenString(String fen) {
-		List<Position> fenPositions = toFenPositions(fen);
+		String[] splitFen = fen.split(" +");
+		List<Position> fenPositions = toFenPositions(splitFen[0]);
+		Side fenSide = Side.White;
+		if (splitFen.length >= 2) {
+			fenSide = splitFen[1].equals("w") ? Side.White : Side.Black;
+		}
 		
 		clear();
 		positions.addAll(fenPositions);
+		sideToMove = fenSide;
+		
 		invalidateAnalysis();
 	}
 
