@@ -76,4 +76,13 @@ public enum Piece {
 	private static final double PAWN_VALUE_X[] = { 1.0, 1.02, 1.05, 1.08, 1.08, 1.05, 1.02, 1.0 };
 	private static final double PAWN_VALUE_Y[] = { 1.0, 1.1, 1.3, 1.6, 2.0, 2.5, 3.1, 3.8 };
 	private static final double KNIGHT_VALUE_XY[] = { 1.0, 1.01, 1.03, 1.05, 1.05, 1.03, 1.01, 1.0 };
+
+	public static Piece ofCharacter(char c) {
+		for (Piece piece : Piece.values()) {
+			if (piece.character == Character.toLowerCase(c)) {
+				return piece;
+			}
+		}
+		return null;
+	}
 }
