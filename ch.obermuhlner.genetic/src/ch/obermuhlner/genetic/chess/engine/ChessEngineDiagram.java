@@ -1,5 +1,6 @@
 package ch.obermuhlner.genetic.chess.engine;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -16,10 +17,11 @@ import java.util.Map;
 import javax.imageio.ImageIO;
 
 import ch.obermuhlner.genetic.chess.engine.MonteCarloChessEngine.MoveValue;
+import ch.obermuhlner.genetic.chess.engine.MonteCarloChessEngine.PositionValue;
 
 public class ChessEngineDiagram {
 
-	private static final int DEFAULT_THINK_MILLISECONDS = 1000;
+	private static final int DEFAULT_THINK_MILLISECONDS = 10000;
 
 	private static final String[] PIECE_NAMES = {
 			"black_pawn", "black_knight", "black_bishop", "black_rook", "black_queen", "black_king",
@@ -29,6 +31,7 @@ public class ChessEngineDiagram {
 	private static final int FIELD_PIXELS = 55;
 	private static final int IMAGE_OFFSET = (FIELD_PIXELS - 45) / 2;
 	private static final int CIRCLE_RADIUS_PIXELS = 3;
+	private static final int VALUE_OFFSET_PIXELS = 4;
 	
 	private static final int THICKNESS_FACTOR = 40;
 
@@ -65,17 +68,22 @@ public class ChessEngineDiagram {
 		Board board = new Board();
 		board.setFenString(fen);
 		
-		List<MoveValue> allMoves = chessEngine.getAllMoves(board, thinkMilliseconds, 50);
+		List<PositionValue> allPositions = chessEngine.getAllPositions(board);
+		for (PositionValue positionValue : allPositions) {
+			System.out.printf("%3s %8.5f (%8.5f)\n", positionValue.position.toString(), positionValue.value, positionValue.position.getPiece().getValue());
+		}
+		System.out.println();
 		
+		List<MoveValue> allMoves = chessEngine.getAllMoves(board, thinkMilliseconds, 50);
 		for (MoveValue moveValue : allMoves) {
-			System.out.printf("%8.5f %s\n", moveValue.value, moveValue.move.toNotationString());
+			System.out.printf("%15s %8.5f\n", moveValue.move.toNotationString(), moveValue.value);
 		}
 
 		if (diagramFileName == null) {
 			diagramFileName = toDiagramFileName(fen);
 		}
 		
-		createDiagram(diagramFileName, board, allMoves);
+		createDiagram(diagramFileName, board, allPositions, allMoves);
 	}
 
 	private static String toDiagramFileName(String fen) {
@@ -83,7 +91,7 @@ public class ChessEngineDiagram {
 		return "diagram_" + convertedFen + ".png";
 	}
 
-	private static void createDiagram(String diagramFileName, Board board, List<MoveValue> allMoves) {
+	private static void createDiagram(String diagramFileName, Board board, List<PositionValue> allPositions, List<MoveValue> allMoves) {
 		Map<String, Image> pieceImages = new HashMap<>();
 		try {
 			for(String pieceName : PIECE_NAMES) {
@@ -121,6 +129,20 @@ public class ChessEngineDiagram {
 			}
 		}
 		
+		for (PositionValue positionValue : allPositions) {
+			int pixelX = toFieldPixelX(positionValue.position.getX());
+			int pixelY = toFieldPixelY(positionValue.position.getY());
+			
+			graphics.setColor(positionValue.position.getSide() == Side.White ? Color.YELLOW : Color.BLACK);
+			int positionValuePixels = toInt(positionValue.value * 5);
+			int pieceValuePixels = toInt(positionValue.position.getPiece().getValue() * 5);
+			graphics.setStroke(new BasicStroke(2));
+			graphics.drawLine(pixelX, pixelY + FIELD_PIXELS - VALUE_OFFSET_PIXELS, pixelX + positionValuePixels, pixelY + FIELD_PIXELS - VALUE_OFFSET_PIXELS);
+			graphics.setColor(positionValue.position.getSide() == Side.White ? Color.DARK_GRAY : Color.YELLOW);
+			graphics.setStroke(new BasicStroke(1));
+			graphics.drawLine(pixelX + pieceValuePixels, pixelY + FIELD_PIXELS - VALUE_OFFSET_PIXELS + 1, pixelX + pieceValuePixels, pixelY + FIELD_PIXELS - VALUE_OFFSET_PIXELS - 1);
+		}
+		
 		for (MoveValue moveValue : allMoves) {
 			int sourceX = moveValue.move.getSource().getX();
 			int sourceY = moveValue.move.getSource().getY();
@@ -132,7 +154,6 @@ public class ChessEngineDiagram {
 			Color color = valueToColor(moveValue.value);
 		
 			graphics.setColor(color);
-
 			
 			int sourceFieldCenterPixelX = toFieldCenterPixelX(sourceX);
 			int sourceFieldCenterPixelY = toFieldCenterPixelY(sourceY);
@@ -155,7 +176,7 @@ public class ChessEngineDiagram {
 			};
 			graphics.fillPolygon(xPoints, yPoints, xPoints.length);
 			
-			graphics.drawLine(toFieldCenterPixelX(sourceX), sourceFieldCenterPixelY, toFieldCenterPixelX(targetX), toFieldCenterPixelY(targetY));
+			//graphics.drawLine(toFieldCenterPixelX(sourceX), sourceFieldCenterPixelY, toFieldCenterPixelX(targetX), toFieldCenterPixelY(targetY));
 			graphics.fillOval(toFieldCenterPixelX(targetX) - CIRCLE_RADIUS_PIXELS, toFieldCenterPixelY(targetY) - CIRCLE_RADIUS_PIXELS, 2*CIRCLE_RADIUS_PIXELS, 2*CIRCLE_RADIUS_PIXELS);
 		}
 		
@@ -204,6 +225,7 @@ public class ChessEngineDiagram {
 		return Math.atan2(y, x);
 	}
 	
+	@SuppressWarnings("unused")
 	private static double cartesianToRadius(double x, double y) {
 		return Math.sqrt(x*x + y*y);
 	}
