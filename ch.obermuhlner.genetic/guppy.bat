@@ -1,0 +1,1 @@
+java -classpath bin ch.obermuhlner.genetic.chess.engine.uci.UciProtocol
