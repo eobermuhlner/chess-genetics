@@ -113,7 +113,15 @@ public class UciProtocol implements InfoLogger {
 	}
 
 	private void executeGo(String[] args) {
-		long thinkingMilliseconds = 1000;
+		long thinkingMilliseconds = 0;
+		
+		if (thinkingMilliseconds == 0) {
+			try {
+				Thread.sleep(500);
+			} catch (InterruptedException e) {
+				// ignore
+			}
+		}
 		String bestMove = chessEngine.bestMove(thinkingMilliseconds);
 		println("bestmove " + bestMove);
 	}
