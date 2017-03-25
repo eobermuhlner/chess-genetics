@@ -315,11 +315,10 @@ public class MonteCarloChessEngine implements ChessEngine {
 
 	private Side playGame(Board board, int moveCount) {
 		for (int i = 0; i < moveCount; i++) {
-			List<Move> allMoves = board.getAllMoves();
-			if (allMoves.isEmpty()) {
+			Move move = findBestMoveWithoutThinking(board);
+			if (move == null) {
 				return board.getSideToMove().otherSide();
 			}
-			Move move = randomMove(allMoves);
 			board.move(move);
 		}
 		
@@ -408,11 +407,15 @@ public class MonteCarloChessEngine implements ChessEngine {
 		
 		long startMillis = System.currentTimeMillis();
 
-		double value = chessEngine.evaluatePlaying(board, 1000, 100);
-		System.out.println("VALUE " + value);
+		System.out.println("VALUE_BOARD " + board.getValue());
 		
+		double value = chessEngine.evaluatePlaying(board, 1000, 100);
+		System.out.println("VALUE_PLAYING " + value);
+
+		System.out.println("BEST_NO_THINKING " + chessEngine.findBestMoveWithoutThinking(board));
+
 		Move bestMove = chessEngine.getBestMove(board, 10000);
-		System.out.println("BEST " + bestMove);
+		System.out.println("BEST_THINKING " + bestMove);
 		
 		long endMillis = System.currentTimeMillis();
 		System.out.println("TIME " + (endMillis - startMillis) + " ms");
