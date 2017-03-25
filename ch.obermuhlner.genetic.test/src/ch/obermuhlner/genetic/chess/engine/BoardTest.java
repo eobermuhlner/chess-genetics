@@ -13,7 +13,7 @@ public class BoardTest {
 	@Test
 	public void testGetFenString() {
 		Board board = new Board();
-		assertEquals("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR", board.toFenString());
+		assertEquals("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w", board.toFenString());
 	}
 
 	@Test
