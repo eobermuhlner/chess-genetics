@@ -21,7 +21,7 @@ import ch.obermuhlner.genetic.chess.engine.MonteCarloChessEngine.PositionValue;
 
 public class ChessEngineDiagram {
 
-	private static final int DEFAULT_THINK_MILLISECONDS = 10000;
+	private static final int DEFAULT_THINK_MILLISECONDS = 1000;
 
 	private static final String[] PIECE_NAMES = {
 			"black_pawn", "black_knight", "black_bishop", "black_rook", "black_queen", "black_king",
@@ -80,7 +80,7 @@ public class ChessEngineDiagram {
 		}
 
 		if (diagramFileName == null) {
-			diagramFileName = toDiagramFileName(fen);
+			diagramFileName = toDiagramFileName(board.toFenString());
 		}
 		
 		createDiagram(diagramFileName, board, allPositions, allMoves);
