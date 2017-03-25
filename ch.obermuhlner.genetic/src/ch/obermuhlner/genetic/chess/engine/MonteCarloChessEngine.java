@@ -28,11 +28,18 @@ public class MonteCarloChessEngine implements ChessEngine {
 			this.position = position;
 			this.value = value;
 		}
+		
+		@Override
+		public String toString() {
+			return String.format("%s(%6.4f)", position, value);
+		}
 	}
 
 	private InfoLogger infoLogger;
 
 	private Board board;
+
+	private List<Move> allMoves;
 
 	@Override
 	public void setInfoLogger(InfoLogger infoLogger) {
@@ -59,6 +66,8 @@ public class MonteCarloChessEngine implements ChessEngine {
 	@Override
 	public String bestMove(long thinkMilliseconds) {
 		infoLogger.infoString("position " + board.toFenString());
+		infoLogger.infoString("allmoves " + getAllMoves(board));
+		
 		Move move = getBestMove(board, thinkMilliseconds);
 		if (move == null) {
 			return "(none)";
@@ -104,11 +113,15 @@ public class MonteCarloChessEngine implements ChessEngine {
 	}
 	
 	public Move getBestMove(Board board, long thinkMilliseconds) {
+		if (thinkMilliseconds == 0) {
+			return findBestMoveWithoutThinking(board);
+		}
+		
 		List<Move> allMoves = board.getAllMoves();
 		if (allMoves.isEmpty()) {
 			return null;
 		}
-		
+
 		List<MoveStatistic> moveStatistics = allMoves.stream()
 			.map(move -> new MoveStatistic(move))
 			.collect(Collectors.toList());
@@ -116,10 +129,34 @@ public class MonteCarloChessEngine implements ChessEngine {
 		return findBestMove(board, moveStatistics, thinkMilliseconds);
 	}
 
+	private Move findBestMoveWithoutThinking(Board board) {
+		allMoves = board.getAllMoves();
+		if (allMoves.isEmpty()) {
+			return null;
+		}
+
+		List<MoveValue> allMoveValues = allMoves.stream()
+			.map(move -> new MoveValue(move, board.getValue(move)))
+			.collect(Collectors.toList());
+
+		return randomMoveValues(allMoveValues);
+	}
+
 	public List<PositionValue> getAllPositions(Board board) {
 		return board.getPositions().stream()
 			.map(position -> new PositionValue(position, board.getValue(position)))
+			.sorted((p1, p2) -> {
+				return -Double.compare(p1.value, p2.value);
+			})
 			.collect(Collectors.toList());
+	}
+
+	public List<Move> getAllMoves(Board board) {
+		List<Move> allMoves = board.getAllMoves();
+		allMoves.sort((move1, move2) -> {
+			return -Double.compare(move1.getValue(), move2.getValue());
+		});
+		return allMoves;
 	}
 	
 	public List<MoveValue> getAllMoves(Board board, long thinkMilliseconds, int moveCount) {
@@ -156,7 +193,7 @@ public class MonteCarloChessEngine implements ChessEngine {
 	}
 
 	private Move findBestMove(Board board, List<MoveStatistic> moveStatistics, long thinkMilliseconds) {
-		int moveCount = 200;
+		int moveCount = 10;
 		long averagePlayMillis = 10;
 		
 		long reductionMilliseconds = thinkMilliseconds / 2;
@@ -180,7 +217,31 @@ public class MonteCarloChessEngine implements ChessEngine {
 		
 		sortStatistics(moveStatistics);
 		
-		//System.out.println("BEST   " + moveStatistics.get(0));
+		System.out.println("STATS " + moveStatistics);
+		return pickRandomMove(moveStatistics);
+	}
+
+	private Move pickRandomMove(List<MoveStatistic> moveStatistics) {
+		double total = 0;
+		double min = 0;
+		for (MoveStatistic moveStatistic : moveStatistics) {
+			double value = moveStatistic.getValue();
+			total += value;
+			min = Math.min(min, value);
+		}
+		double offset = -min;
+		total += offset * moveStatistics.size();
+		
+		double r = random.nextDouble() * total;
+		
+		total = 0;
+		for (MoveStatistic moveStatistic : moveStatistics) {
+			double value = moveStatistic.getValue();
+			total += value + offset;
+			if (r < total) {
+				return moveStatistic.move;
+			}
+		}		
 		return moveStatistics.get(0).move;
 	}
 
@@ -221,9 +282,9 @@ public class MonteCarloChessEngine implements ChessEngine {
 
 	private void sortStatistics(List<MoveStatistic> moveStatistics) {
 		moveStatistics.sort((move1, move2) -> {
-			int compare = Double.compare(move1.getValue(), move2.getValue());
+			int compare = -Double.compare(move1.getValue(), move2.getValue());
 			if (compare == 0) {
-				compare = Double.compare(move1.move.getValue(), move2.move.getValue());
+				compare = -Double.compare(move1.move.getValue(), move2.move.getValue());
 			}
 			return compare;
 		});
@@ -248,7 +309,7 @@ public class MonteCarloChessEngine implements ChessEngine {
 		
 		@Override
 		public String toString() {
-			return move + " value=" + getValue() + " after " + playCount + " games";
+			return move + " value=" + getValue() + " after " + playCount + " games (" + whiteWins + " white, " + blackWins + " black wins, " + (playCount - whiteWins - blackWins) + " remis)";
 		}
 	}
 
@@ -308,6 +369,29 @@ public class MonteCarloChessEngine implements ChessEngine {
 		return allMoves.get(allMoves.size() - 1);
 	}
 
+	private Move randomMoveValues(List<MoveValue> allMoves) {
+		if (allMoves.isEmpty()) {
+			return null;
+		}
+		
+		double total = 0;
+		for (MoveValue moveValue : allMoves) {
+			total += moveValue.value;
+		}
+		
+		double r = random.nextDouble() * total;
+		
+		total = 0;
+		for (MoveValue moveValue : allMoves) {
+			total += moveValue.value;
+			if (r < total) {
+				return moveValue.move;
+			}
+		}
+
+		return allMoves.get(allMoves.size() - 1).move;
+	}
+
 	public static void main(String[] args) {
 		runEngineExample();
 	}
@@ -316,18 +400,22 @@ public class MonteCarloChessEngine implements ChessEngine {
 		MonteCarloChessEngine chessEngine = new MonteCarloChessEngine();
 		
 		Board board = new Board();
-		//board.setFenString("6k1/rr1q2p1/2bnnpbp/2ppppp1/8/8/PPPPPPPP/RNBQKBNR");
+		board.setFenString("r1bqkb1r/pppppppp/2n5/5n2/1P4PP/P7/2PPPP1R/RNBQKBN1");
+
+		System.out.println("FEN " + board.toFenString());
+		System.out.println("ALLPOSITIONS " + chessEngine.getAllPositions(board));
+		System.out.println("ALLMOVES " + chessEngine.getAllMoves(board));
 		
 		long startMillis = System.currentTimeMillis();
 
-//		double value = chessEngine.evaluatePlaying(board, 1000, 100);
-//		System.out.println("VALUE " + value);
+		double value = chessEngine.evaluatePlaying(board, 1000, 100);
+		System.out.println("VALUE " + value);
 		
 		Move bestMove = chessEngine.getBestMove(board, 10000);
-		//System.out.println("BEST " + bestMove);
+		System.out.println("BEST " + bestMove);
 		
 		long endMillis = System.currentTimeMillis();
-		//System.out.println("TIME " + (endMillis - startMillis) + " ms");
+		System.out.println("TIME " + (endMillis - startMillis) + " ms");
 
 	}
 }
