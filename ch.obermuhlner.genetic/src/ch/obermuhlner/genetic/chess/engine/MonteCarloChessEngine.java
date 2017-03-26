@@ -10,28 +10,33 @@ public class MonteCarloChessEngine implements ChessEngine {
 
 	private final Random random = new Random();
 
-	public static class MoveValue {
-		public final Move move;
-		public final double value;
-		
-		public MoveValue(Move move, double value) {
-			this.move = move;
-			this.value = value;
-		}
+	public interface EntityWithValue<E> {
+		E getEntity();
+		double getValue();
 	}
-
-	public static class PositionValue {
-		public final Position position;
-		public final double value;
+	
+	public static class EntityWithFixValue<E> implements EntityWithValue<E> {
+		private final E entity;
+		private final double value;
 		
-		public PositionValue(Position position, double value) {
-			this.position = position;
+		public EntityWithFixValue(E entity, double value) {
+			this.entity = entity;
 			this.value = value;
 		}
 		
 		@Override
+		public E getEntity() {
+			return entity;
+		}
+		
+		@Override
+		public double getValue() {
+			return value;
+		}
+
+		@Override
 		public String toString() {
-			return String.format("%s(%6.4f)", position, value);
+			return String.format("%s(%6.4f)", entity, value);
 		}
 	}
 
@@ -125,16 +130,16 @@ public class MonteCarloChessEngine implements ChessEngine {
 			return null;
 		}
 
-		List<MoveValue> allMoveValues = allMoves.stream()
-			.map(move -> new MoveValue(move, board.getValue(move)))
+		List<EntityWithValue<Move>> allMoveValues = allMoves.stream()
+			.map(move -> new EntityWithFixValue<>(move, board.getValue(move)))
 			.collect(Collectors.toList());
 
-		return randomMoveValues(allMoveValues);
+		return pickRandom(allMoveValues);
 	}
 
-	public List<PositionValue> getAllPositions(Board board) {
+	public List<EntityWithValue<Position>> getAllPositions(Board board) {
 		return board.getPositions().stream()
-			.map(position -> new PositionValue(position, board.getValue(position)))
+			.map(position -> new EntityWithFixValue<>(position, board.getValue(position)))
 			.sorted((p1, p2) -> {
 				return -Double.compare(p1.value, p2.value);
 			})
@@ -149,7 +154,7 @@ public class MonteCarloChessEngine implements ChessEngine {
 		return allMoves;
 	}
 	
-	public List<MoveValue> getAllMoves(Board board, long thinkMilliseconds, int moveCount) {
+	public List<EntityWithValue<Move>> getAllMoves(Board board, long thinkMilliseconds, int moveCount) {
 		List<Move> allMoves = board.getAllMoves();
 		if (allMoves.isEmpty()) {
 			return Collections.emptyList();
@@ -175,9 +180,9 @@ public class MonteCarloChessEngine implements ChessEngine {
 		
 		//System.out.println("PLAY COUNT " + moveStatistics.get(0).playCount);
 		
-		List<MoveValue> result = new ArrayList<>();
+		List<EntityWithValue<Move>> result = new ArrayList<>();
 		for (MoveStatistic moveStatistic : moveStatistics) {
-			result.add(new MoveValue(moveStatistic.move, moveStatistic.getValue()));
+			result.add(new EntityWithFixValue<Move>(moveStatistic.move, moveStatistic.getValue()));
 		}
 		return result;
 	}
@@ -324,27 +329,30 @@ public class MonteCarloChessEngine implements ChessEngine {
 		return null;
 	}
 
-	private Move randomMoveValues(List<MoveValue> allMoves) {
-		if (allMoves.isEmpty()) {
+	private <E> E pickRandom(List<EntityWithValue<E>> allEntitiesWithValue) {
+		if (allEntitiesWithValue.isEmpty()) {
 			return null;
 		}
 		
+		// TODO handle offset if negative
+		
 		double total = 0;
-		for (MoveValue moveValue : allMoves) {
-			total += moveValue.value;
+		for (EntityWithValue<E> entityWithValue : allEntitiesWithValue) {
+			total += entityWithValue.getValue();
 		}
 		
 		double r = random.nextDouble() * total;
 		
 		total = 0;
-		for (MoveValue moveValue : allMoves) {
-			total += moveValue.value;
-			if (r < total) {
-				return moveValue.move;
+		for (EntityWithValue<E> entityWithValue : allEntitiesWithValue) {
+			total += entityWithValue.getValue();
+			if (r <= total) {
+				return entityWithValue.getEntity();
 			}
 		}
 
-		return allMoves.get(allMoves.size() - 1).move;
+		// should not happen, but just to be save in case of rounding errors
+		return allEntitiesWithValue.get(0).getEntity();
 	}
 
 	public static void main(String[] args) {

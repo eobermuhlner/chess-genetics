@@ -16,12 +16,11 @@ import java.util.Map;
 
 import javax.imageio.ImageIO;
 
-import ch.obermuhlner.genetic.chess.engine.MonteCarloChessEngine.MoveValue;
-import ch.obermuhlner.genetic.chess.engine.MonteCarloChessEngine.PositionValue;
+import ch.obermuhlner.genetic.chess.engine.MonteCarloChessEngine.EntityWithValue;
 
 public class ChessEngineDiagram {
 
-	private static final int DEFAULT_THINK_MILLISECONDS = 1000;
+	private static final int DEFAULT_THINK_MILLISECONDS = 10000;
 
 	private static final String[] PIECE_NAMES = {
 			"black_pawn", "black_knight", "black_bishop", "black_rook", "black_queen", "black_king",
@@ -68,15 +67,15 @@ public class ChessEngineDiagram {
 		Board board = new Board();
 		board.setFenString(fen);
 		
-		List<PositionValue> allPositions = chessEngine.getAllPositions(board);
-		for (PositionValue positionValue : allPositions) {
-			System.out.printf("%3s %8.5f (%8.5f)\n", positionValue.position.toString(), positionValue.value, positionValue.position.getPiece().getValue());
+		List<EntityWithValue<Position>> allPositions = chessEngine.getAllPositions(board);
+		for (EntityWithValue<Position> positionValue : allPositions) {
+			System.out.printf("%3s %8.5f (%8.5f)\n", positionValue.getEntity().toString(), positionValue.getValue(), positionValue.getEntity().getPiece().getValue());
 		}
 		System.out.println();
 		
-		List<MoveValue> allMoves = chessEngine.getAllMoves(board, thinkMilliseconds, 50);
-		for (MoveValue moveValue : allMoves) {
-			System.out.printf("%15s %8.5f\n", moveValue.move.toNotationString(), moveValue.value);
+		List<EntityWithValue<Move>> allMoves = chessEngine.getAllMoves(board, thinkMilliseconds, 50);
+		for (EntityWithValue<Move> moveValue : allMoves) {
+			System.out.printf("%15s %8.5f\n", moveValue.getEntity().toNotationString(), moveValue.getValue());
 		}
 
 		if (diagramFileName == null) {
@@ -91,7 +90,7 @@ public class ChessEngineDiagram {
 		return "diagram_" + convertedFen + ".png";
 	}
 
-	private static void createDiagram(String diagramFileName, Board board, List<PositionValue> allPositions, List<MoveValue> allMoves) {
+	private static void createDiagram(String diagramFileName, Board board, List<EntityWithValue<Position>> allPositions, List<EntityWithValue<Move>> allMoves) {
 		Map<String, Image> pieceImages = new HashMap<>();
 		try {
 			for(String pieceName : PIECE_NAMES) {
@@ -129,29 +128,31 @@ public class ChessEngineDiagram {
 			}
 		}
 		
-		for (PositionValue positionValue : allPositions) {
-			int pixelX = toFieldPixelX(positionValue.position.getX());
-			int pixelY = toFieldPixelY(positionValue.position.getY());
+		for (EntityWithValue<Position> positionValue : allPositions) {
+			Position position = positionValue.getEntity();
 			
-			graphics.setColor(positionValue.position.getSide() == Side.White ? Color.YELLOW : Color.BLACK);
-			int positionValuePixels = toInt(positionValue.value * 5);
-			int pieceValuePixels = toInt(positionValue.position.getPiece().getValue() * 5);
+			int pixelX = toFieldPixelX(position.getX());
+			int pixelY = toFieldPixelY(position.getY());
+			
+			graphics.setColor(position.getSide() == Side.White ? Color.YELLOW : Color.BLACK);
+			int positionValuePixels = toInt(positionValue.getValue() * 5);
+			int pieceValuePixels = toInt(position.getPiece().getValue() * 5);
 			graphics.setStroke(new BasicStroke(2));
 			graphics.drawLine(pixelX, pixelY + FIELD_PIXELS - VALUE_OFFSET_PIXELS, pixelX + positionValuePixels, pixelY + FIELD_PIXELS - VALUE_OFFSET_PIXELS);
-			graphics.setColor(positionValue.position.getSide() == Side.White ? Color.DARK_GRAY : Color.YELLOW);
+			graphics.setColor(position.getSide() == Side.White ? Color.DARK_GRAY : Color.YELLOW);
 			graphics.setStroke(new BasicStroke(1));
 			graphics.drawLine(pixelX + pieceValuePixels, pixelY + FIELD_PIXELS - VALUE_OFFSET_PIXELS + 1, pixelX + pieceValuePixels, pixelY + FIELD_PIXELS - VALUE_OFFSET_PIXELS - 1);
 		}
 		
-		for (MoveValue moveValue : allMoves) {
-			int sourceX = moveValue.move.getSource().getX();
-			int sourceY = moveValue.move.getSource().getY();
+		for (EntityWithValue<Move> moveValue : allMoves) {
+			int sourceX = moveValue.getEntity().getSource().getX();
+			int sourceY = moveValue.getEntity().getSource().getY();
 			
-			int targetX = moveValue.move.getTargetX();
-			int targetY = moveValue.move.getTargetY();
+			int targetX = moveValue.getEntity().getTargetX();
+			int targetY = moveValue.getEntity().getTargetY();
 
-			int thickness = valueToThickness(moveValue.value);
-			Color color = valueToColor(moveValue.value);
+			int thickness = valueToThickness(moveValue.getValue());
+			Color color = valueToColor(moveValue.getValue());
 		
 			graphics.setColor(color);
 			
