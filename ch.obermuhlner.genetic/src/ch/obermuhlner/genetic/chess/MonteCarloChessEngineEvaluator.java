@@ -37,7 +37,7 @@ public class MonteCarloChessEngineEvaluator implements GenomeEvaluator<StartPosi
 		if (evaluatePlaying) {
 			return chessEngine.evaluatePlaying(board, gameCount, moveCount);
 		} else {
-			return chessEngine.evaluatePosition(board, gameCount, moveCount);
+			return chessEngine.evaluatePosition(board);
 		}
 	}
 

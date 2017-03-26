@@ -85,16 +85,6 @@ public class MonteCarloChessEngine implements ChessEngine {
 		return board.getValue();
 	}
 
-	public double evaluatePosition(Board board, int gameCount, int moveCount) {
-		double totalValue = 0;
-		for (int game = 0; game < gameCount; game++) {
-			double value = evaluateGame(board.clone(), moveCount);
-			totalValue += value;
-		}
-		
-		return totalValue / gameCount;
-	}
-
 	public double evaluatePlaying(Board board, int gameCount, int moveCount) {
 		int whiteWins = 0;
 		int blackWins = 0;
@@ -193,7 +183,7 @@ public class MonteCarloChessEngine implements ChessEngine {
 	}
 
 	private Move findBestMove(Board board, List<MoveStatistic> moveStatistics, long thinkMilliseconds) {
-		int moveCount = 10;
+		int moveCount = 5;
 		long averagePlayMillis = 10;
 		
 		long reductionMilliseconds = thinkMilliseconds / 2;
@@ -219,6 +209,7 @@ public class MonteCarloChessEngine implements ChessEngine {
 		
 		System.out.println("STATS " + moveStatistics);
 		return pickRandomMove(moveStatistics);
+		//return moveStatistics.get(0).move;
 	}
 
 	private Move pickRandomMove(List<MoveStatistic> moveStatistics) {
@@ -331,41 +322,6 @@ public class MonteCarloChessEngine implements ChessEngine {
 		}
 		
 		return null;
-	}
-
-	private double evaluateGame(Board board, int moveCount) {
-		for (int i = 0; i < moveCount; i++) {
-			List<Move> allMoves = board.getAllMoves();
-			if (allMoves.isEmpty()) {
-				break;
-			}
-			board.move(randomMove(allMoves));
-		}
-		
-		return board.getValue();
-	}
-
-	private Move randomMove(List<Move> allMoves) {
-		if (allMoves.isEmpty()) {
-			return null;
-		}
-		
-		double total = 0;
-		for (Move move : allMoves) {
-			total += move.getValue();
-		}
-		
-		double r = random.nextDouble() * total;
-		
-		total = 0;
-		for (Move move : allMoves) {
-			total += move.getValue();
-			if (r < total) {
-				return move;
-			}
-		}
-
-		return allMoves.get(allMoves.size() - 1);
 	}
 
 	private Move randomMoveValues(List<MoveValue> allMoves) {
