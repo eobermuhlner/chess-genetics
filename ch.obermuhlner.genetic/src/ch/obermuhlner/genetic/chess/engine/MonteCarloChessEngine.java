@@ -40,6 +40,34 @@ public class MonteCarloChessEngine implements ChessEngine {
 		}
 	}
 
+	private static class MoveStatistic implements EntityWithValue<Move> {
+		Move move;
+		int playCount;
+		int whiteWins;
+		int blackWins;
+		
+		public MoveStatistic(Move move) {
+			this.move = move;
+		}
+		
+		@Override
+		public Move getEntity() {
+			return move;
+		}
+		
+		public double getValue() {
+			if (playCount == 0) {
+				return 0;
+			}
+			return (double)(whiteWins - blackWins) / playCount;
+		}
+		
+		@Override
+		public String toString() {
+			return move + " value=" + getValue() + " after " + playCount + " games (" + whiteWins + " white, " + blackWins + " black wins, " + (playCount - whiteWins - blackWins) + " remis)";
+		}
+	}
+
 	private InfoLogger infoLogger;
 
 	private Board board;
@@ -213,32 +241,8 @@ public class MonteCarloChessEngine implements ChessEngine {
 		sortStatistics(moveStatistics);
 		
 		System.out.println("STATS " + moveStatistics);
-		return pickRandomMove(moveStatistics);
+		return pickRandom(moveStatistics);
 		//return moveStatistics.get(0).move;
-	}
-
-	private Move pickRandomMove(List<MoveStatistic> moveStatistics) {
-		double total = 0;
-		double min = 0;
-		for (MoveStatistic moveStatistic : moveStatistics) {
-			double value = moveStatistic.getValue();
-			total += value;
-			min = Math.min(min, value);
-		}
-		double offset = -min;
-		total += offset * moveStatistics.size();
-		
-		double r = random.nextDouble() * total;
-		
-		total = 0;
-		for (MoveStatistic moveStatistic : moveStatistics) {
-			double value = moveStatistic.getValue();
-			total += value + offset;
-			if (r < total) {
-				return moveStatistic.move;
-			}
-		}		
-		return moveStatistics.get(0).move;
 	}
 
 	private void play(Board board, MoveStatistic moveStatistic, int moveCount) {
@@ -256,7 +260,7 @@ public class MonteCarloChessEngine implements ChessEngine {
 		}
 	}
 
-	private List<MoveStatistic> reduceStatistics(List<MoveStatistic> moveStatistics, long thinkMilliseconds, long reductionMilliseconds, long averagePlayMillis) {
+	private <MV extends EntityWithValue<Move>> List<MV> reduceStatistics(List<MV> moveStatistics, long thinkMilliseconds, long reductionMilliseconds, long averagePlayMillis) {
 		int currentSize = moveStatistics.size();
 		int optimumSize;
 		if (averagePlayMillis * currentSize * 2 < Math.min(thinkMilliseconds, reductionMilliseconds)) {
@@ -276,37 +280,10 @@ public class MonteCarloChessEngine implements ChessEngine {
 		}
 	}
 
-	private void sortStatistics(List<MoveStatistic> moveStatistics) {
+	private <E> void sortStatistics(List<? extends EntityWithValue<E>> moveStatistics) {
 		moveStatistics.sort((move1, move2) -> {
-			int compare = -Double.compare(move1.getValue(), move2.getValue());
-			if (compare == 0) {
-				compare = -Double.compare(move1.move.getValue(), move2.move.getValue());
-			}
-			return compare;
+			return -Double.compare(move1.getValue(), move2.getValue());
 		});
-	}
-
-	private static class MoveStatistic {
-		Move move;
-		int playCount;
-		int whiteWins;
-		int blackWins;
-		
-		public MoveStatistic(Move move) {
-			this.move = move;
-		}
-		
-		public double getValue() {
-			if (playCount == 0) {
-				return 0;
-			}
-			return (double)(whiteWins - blackWins) / playCount;
-		}
-		
-		@Override
-		public String toString() {
-			return move + " value=" + getValue() + " after " + playCount + " games (" + whiteWins + " white, " + blackWins + " black wins, " + (playCount - whiteWins - blackWins) + " remis)";
-		}
 	}
 
 	private Side playGame(Board board, int moveCount) {
@@ -329,7 +306,7 @@ public class MonteCarloChessEngine implements ChessEngine {
 		return null;
 	}
 
-	private <E> E pickRandom(List<EntityWithValue<E>> allEntitiesWithValue) {
+	private <E> E pickRandom(List<? extends EntityWithValue<E>> allEntitiesWithValue) {
 		if (allEntitiesWithValue.isEmpty()) {
 			return null;
 		}
@@ -337,15 +314,21 @@ public class MonteCarloChessEngine implements ChessEngine {
 		// TODO handle offset if negative
 		
 		double total = 0;
+		double min = 0;
 		for (EntityWithValue<E> entityWithValue : allEntitiesWithValue) {
-			total += entityWithValue.getValue();
+			double value = entityWithValue.getValue();
+			total += value;
+			min = Math.min(min, value);
 		}
-		
+
+		double offset = -min;
+		total += offset * allEntitiesWithValue.size();
+
 		double r = random.nextDouble() * total;
 		
 		total = 0;
 		for (EntityWithValue<E> entityWithValue : allEntitiesWithValue) {
-			total += entityWithValue.getValue();
+			total += entityWithValue.getValue() + offset;
 			if (r <= total) {
 				return entityWithValue.getEntity();
 			}
