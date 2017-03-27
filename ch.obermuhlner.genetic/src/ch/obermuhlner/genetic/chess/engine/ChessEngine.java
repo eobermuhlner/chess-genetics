@@ -8,6 +8,8 @@ public interface ChessEngine {
 	
 	void setFen(String fen);
 	
+	boolean isWhiteToMove();
+	
 	double evaluate();
 
 	String bestMove(long thinkingMilliseconds);

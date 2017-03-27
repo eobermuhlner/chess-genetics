@@ -59,7 +59,9 @@ public class MonteCarloChessEngine implements ChessEngine {
 			if (playCount == 0) {
 				return 0;
 			}
-			return (double)(whiteWins - blackWins) / playCount;
+			double playValue = (double)(whiteWins - blackWins) / playCount;
+			//return playValue * move.getValue();
+			return playValue;
 		}
 		
 		@Override
@@ -91,6 +93,11 @@ public class MonteCarloChessEngine implements ChessEngine {
 		board.setFenString(fen);
 	}
 
+	@Override
+	public boolean isWhiteToMove() {
+		return board.getSideToMove() == Side.White;
+	}
+	
 	@Override
 	public double evaluate() {
 		return board.getValue();
@@ -241,8 +248,8 @@ public class MonteCarloChessEngine implements ChessEngine {
 		sortStatistics(moveStatistics);
 		
 		System.out.println("STATS " + moveStatistics);
-		return pickRandom(moveStatistics);
-		//return moveStatistics.get(0).move;
+		//return pickRandom(moveStatistics);
+		return moveStatistics.get(0).move;
 	}
 
 	private void play(Board board, MoveStatistic moveStatistic, int moveCount) {
@@ -310,8 +317,6 @@ public class MonteCarloChessEngine implements ChessEngine {
 		if (allEntitiesWithValue.isEmpty()) {
 			return null;
 		}
-		
-		// TODO handle offset if negative
 		
 		double total = 0;
 		double min = 0;

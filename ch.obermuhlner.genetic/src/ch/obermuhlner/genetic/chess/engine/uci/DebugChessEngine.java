@@ -19,6 +19,11 @@ public class DebugChessEngine implements ChessEngine {
 	public void setFen(String fen) {
 		System.out.println("debug fen " + fen);
 	}
+	
+	@Override
+	public boolean isWhiteToMove() {
+		return true;
+	}
 
 	@Override
 	public double evaluate() {

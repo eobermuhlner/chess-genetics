@@ -113,7 +113,7 @@ public class UciProtocol implements InfoLogger {
 	}
 
 	private void executeGo(String[] args) {
-		long thinkingMilliseconds = 0;
+		long thinkingMilliseconds = calculateThinkingTime(args);
 		
 		if (thinkingMilliseconds == 0) {
 			try {
@@ -124,6 +124,55 @@ public class UciProtocol implements InfoLogger {
 		}
 		String bestMove = chessEngine.bestMove(thinkingMilliseconds);
 		println("bestmove " + bestMove);
+	}
+
+	private long calculateThinkingTime(String[] args) {
+		long whiteTime = -1;
+		long blackTime = -1;
+		long moveTime = -1;
+		int movesToGo = -1;
+		
+		for (int i = 1; i < args.length; i++) {
+			switch (args[i]) {
+			case "wtime":
+				whiteTime = Long.parseLong(args[++i]);
+				break;
+			case "btime":
+				blackTime = Long.parseLong(args[++i]);
+				break;
+			case "movestogo":
+				movesToGo = Integer.parseInt(args[++i]);
+				break;
+			case "movetime":
+				moveTime = Long.parseLong(args[++i]);
+				break;
+			case "depth":
+				moveTime = Integer.parseInt(args[++i]) * 100;
+				break;
+			case "infinity":
+				moveTime = Integer.MAX_VALUE;
+				break;
+			}
+		}
+
+		if (moveTime >= 0) {
+			return moveTime;
+		}
+		
+		if (whiteTime >= 0 && blackTime >= 0) {
+			boolean whiteToMove = chessEngine.isWhiteToMove();
+			moveTime = whiteToMove ? whiteTime : blackTime;
+			if (movesToGo < 0) {
+				movesToGo = 40;
+			}
+			moveTime = (int) ((moveTime / 2.0) / (movesToGo / 3.0));
+		}
+		
+		if (moveTime < 0) {
+			moveTime = 5000;
+		}
+
+		return moveTime;
 	}
 
 	private void executePosition(String[] args) {
