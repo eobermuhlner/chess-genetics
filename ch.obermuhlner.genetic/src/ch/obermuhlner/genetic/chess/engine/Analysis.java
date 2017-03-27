@@ -95,18 +95,38 @@ public class Analysis {
 	}
 
 	public double getValue(Move move) {
-		double value = move.getValue();
-		
-		if (move.getKill() != null) {
-			int defenders = getDefenders(move.getKill()).size();
-			if (defenders > 0) {
-				value -= getValue(move.getSource());
-			}
-		}
+		//double value = move.getValue();
+		double value = calculateMoveValue(move);
 		
 		return value;
 	}
-	
+
+	private static final double KILL_VALUE_FACTOR = 5;
+	private static final double CONVERT_VALUE_FACTOR = 5;
+	private double calculateMoveValue(Move move) {
+		double result = 1.0;
+		
+		Position source = move.getSource();
+		Position kill = move.getKill();
+		Piece convert = move.getConvert();
+		
+		result -= getValue(source);
+		result += source.getPiece().getValue(source.getSide(), move.getTargetX(), move.getTargetY());
+		
+		if (kill != null) {
+			result += getValue(kill) * KILL_VALUE_FACTOR;
+			
+			int defenders = getDefenders(move.getKill()).size();
+			if (defenders > 0) {
+				result -= getValue(move.getSource()) * KILL_VALUE_FACTOR;
+			}
+		}
+		if (convert != null) {
+			result += convert.getValue(source.getSide(), source.getX(), source.getY()) * CONVERT_VALUE_FACTOR;
+		}
+		return result;
+	}
+
 	private double getMobilityFactor(Position position) {
 		return (double) getMoves(position).size() / position.getPiece().getMaxMoves();
 	}
