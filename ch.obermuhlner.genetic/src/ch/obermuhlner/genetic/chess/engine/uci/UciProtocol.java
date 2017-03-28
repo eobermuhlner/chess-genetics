@@ -179,7 +179,7 @@ public class UciProtocol implements InfoLogger {
 			if (movesToGo < 0) {
 				movesToGo = 40;
 			}
-			moveTime = (int) ((moveTime / 2.0) / (movesToGo / 3.0));
+			moveTime = (int) ((moveTime / 2.0) / (movesToGo / 4.0));
 		}
 		
 		if (moveTime < 0) {
