@@ -10,6 +10,7 @@ import java.io.PrintWriter;
 import java.util.Arrays;
 
 import ch.obermuhlner.genetic.chess.engine.ChessEngine;
+import ch.obermuhlner.genetic.chess.engine.ChessEngine.CalculationState;
 import ch.obermuhlner.genetic.chess.engine.InfoLogger;
 import ch.obermuhlner.genetic.chess.engine.MonteCarloChessEngine;
 
@@ -76,6 +77,7 @@ public class UciProtocol implements InfoLogger {
 			System.exit(0);
 			break;
 		case "stop":
+			System.out.println("Stopping");
 			stop = true;
 			break;
 		case "uci":
@@ -122,8 +124,20 @@ public class UciProtocol implements InfoLogger {
 				// ignore
 			}
 		}
-		String bestMove = chessEngine.bestMove(thinkingMilliseconds);
-		println("bestmove " + bestMove);
+		
+		stop = false;
+		CalculationState<String> calculateBestMove = chessEngine.bestMove(thinkingMilliseconds);
+		new Thread(() -> {
+			while (!calculateBestMove.isFinished() && !stop) {
+				try {
+					Thread.sleep(500);
+				} catch (InterruptedException e) {
+					// ignore
+				}
+			}
+			String bestMove = calculateBestMove.getResult();
+			println("bestmove " + bestMove);
+		}).start();
 	}
 
 	private long calculateThinkingTime(String[] args) {

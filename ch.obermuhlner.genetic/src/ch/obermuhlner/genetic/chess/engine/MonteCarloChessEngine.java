@@ -4,12 +4,17 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 public class MonteCarloChessEngine implements ChessEngine {
 
 	private final Random random = new Random();
 
+	private final ExecutorService executor = Executors.newSingleThreadExecutor();
+	
 	public interface EntityWithValue<E> {
 		E getEntity();
 		double getValue();
@@ -103,12 +108,90 @@ public class MonteCarloChessEngine implements ChessEngine {
 		return board.getValue();
 	}
 
-	@Override
-	public String bestMove(long thinkMilliseconds) {
-		infoLogger.infoString("position " + board.toFenString());
-		infoLogger.infoString("allmoves " + getAllMoves(board));
+	class BestMoveCalculationState implements CalculationState<String>, Runnable {
+		private volatile boolean finished = false;
+		private volatile Move result;
+		private long thinkMilliseconds;
+		private final CountDownLatch countDownLatch = new CountDownLatch(1);
 		
-		Move move = getBestMove(board, thinkMilliseconds);
+		public BestMoveCalculationState(long thinkMilliseconds) {
+			this.thinkMilliseconds = thinkMilliseconds;
+		}
+		
+		@Override
+		public boolean isFinished() {
+			return finished;
+		}
+	
+		@Override
+		public String getResult() {
+			finished = true;
+		
+			try {
+				countDownLatch.await();
+			} catch (InterruptedException e) {
+				// ignore
+			}
+			
+			return toMoveString(result);
+		}
+
+		@Override
+		public void run() {
+			if (thinkMilliseconds == 0) {
+				result = findBestMoveWithoutThinking(board);
+			} else {
+				List<Move> allMoves = board.getAllMoves();
+				if (!allMoves.isEmpty()) {
+					List<MoveStatistic> moveStatistics = allMoves.stream()
+							.map(move -> new MoveStatistic(move))
+							.collect(Collectors.toList());
+					int moveCount = 5;
+					long averagePlayMillis = 10;
+					
+					long reductionMilliseconds = thinkMilliseconds * 2 / 3;
+					
+					while (thinkMilliseconds > 0 && !finished) {
+						moveStatistics = reduceStatistics(moveStatistics, thinkMilliseconds, reductionMilliseconds, averagePlayMillis);
+						
+						long thinkStartMillis = System.currentTimeMillis();
+					
+						for (MoveStatistic moveStatistic : moveStatistics) {
+							play(board, moveStatistic, moveCount);
+						}
+						
+						long thinkEndMillis = System.currentTimeMillis();
+						long thinkDeltaMillis = thinkEndMillis - thinkStartMillis;
+						thinkMilliseconds -= thinkDeltaMillis;
+						
+						averagePlayMillis = thinkDeltaMillis / moveStatistics.size();
+						//System.out.println("TIME   remaining " + thinkMilliseconds + " ms, thought " + thinkDeltaMillis + " ms, average " + averagePlayMillis + " ms");
+					}
+					
+					sortStatistics(moveStatistics);
+					
+					for (MoveStatistic moveStatistic : moveStatistics) {
+						infoLogger.infoString("statistics " + moveStatistic);
+					}
+					
+					result = moveStatistics.get(0).move;
+				}
+			}
+
+			finished = true;
+			countDownLatch.countDown();
+		}
+	}
+	
+	@Override
+	public CalculationState<String> bestMove(long thinkMilliseconds) {
+		BestMoveCalculationState bestMoveCalculationState = new BestMoveCalculationState(thinkMilliseconds);
+		executor.execute(bestMoveCalculationState);
+		
+		return bestMoveCalculationState;
+	}
+	
+	private String toMoveString(Move move) {
 		if (move == null) {
 			return "(none)";
 		}

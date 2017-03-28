@@ -12,7 +12,13 @@ public interface ChessEngine {
 	
 	double evaluate();
 
-	String bestMove(long thinkingMilliseconds);
+	CalculationState<String> bestMove(long thinkingMilliseconds);
 	
 	void move(String move);
+	
+	interface CalculationState<T> {
+		boolean isFinished();
+		
+		T getResult();
+	}
 }
