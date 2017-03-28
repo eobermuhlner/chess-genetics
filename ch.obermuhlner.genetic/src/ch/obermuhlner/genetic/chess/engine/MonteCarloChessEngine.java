@@ -109,6 +109,10 @@ public class MonteCarloChessEngine implements ChessEngine {
 	}
 
 	class BestMoveCalculationState implements CalculationState<String>, Runnable {
+		private static final int DEFAULT_MOVE_COUNT = 50;
+
+		private static final boolean CREATE_DIAGRAMS = true;
+		
 		private volatile boolean finished = false;
 		private volatile Move result;
 		private long thinkMilliseconds;
@@ -146,7 +150,7 @@ public class MonteCarloChessEngine implements ChessEngine {
 					List<MoveStatistic> moveStatistics = allMoves.stream()
 							.map(move -> new MoveStatistic(move))
 							.collect(Collectors.toList());
-					int moveCount = 5;
+					int moveCount = DEFAULT_MOVE_COUNT;
 					long averagePlayMillis = 10;
 					
 					long reductionMilliseconds = thinkMilliseconds * 2 / 3;
@@ -174,6 +178,9 @@ public class MonteCarloChessEngine implements ChessEngine {
 						infoLogger.infoString("statistics " + moveStatistic);
 					}
 					
+					if (CREATE_DIAGRAMS) {
+						ChessEngineDiagram.createDiagram(null, board, null, moveStatistics);
+					}
 					result = moveStatistics.get(0).move;
 				}
 			}

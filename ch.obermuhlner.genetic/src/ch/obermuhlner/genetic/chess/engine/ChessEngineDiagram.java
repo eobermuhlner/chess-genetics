@@ -21,6 +21,7 @@ import ch.obermuhlner.genetic.chess.engine.MonteCarloChessEngine.EntityWithValue
 public class ChessEngineDiagram {
 
 	private static final int DEFAULT_THINK_MILLISECONDS = 10000;
+	private static final int DEFAULT_MOVE_COUNT = 50;
 
 	private static final String[] PIECE_NAMES = {
 			"black_pawn", "black_knight", "black_bishop", "black_rook", "black_queen", "black_king",
@@ -41,7 +42,6 @@ public class ChessEngineDiagram {
 	private static final Color COLOR_RED = new Color(255, 0, 0, 150);
 	private static final Color COLOR_GREEN = new Color(0, 255, 0, 150);
 
-
 	private static ImageObserver imageObserver = new ImageObserver() {
 		@Override
 		public boolean imageUpdate(Image img, int infoflags, int x, int y, int width, int height) {
@@ -52,16 +52,20 @@ public class ChessEngineDiagram {
 	public static void main(String[] args) {
 		String fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
 		long thinkMilliseconds = DEFAULT_THINK_MILLISECONDS;
+		int moveCount = DEFAULT_MOVE_COUNT;
 		String diagramFileName = null;
 		
-		if (args.length >= 1) {
+		if (args.length > 0) {
 			fen = args[0];
 		}
-		if (args.length >= 2) {
+		if (args.length > 1) {
 			thinkMilliseconds = Long.parseLong(args[1]);
 		}
-		if (args.length >= 3) {
-			diagramFileName = args[2];
+		if (args.length > 2) {
+			moveCount = Integer.parseInt(args[2]);
+		}
+		if (args.length > 3) {
+			diagramFileName = args[3];
 		}
 		
 		Board board = new Board();
@@ -73,24 +77,24 @@ public class ChessEngineDiagram {
 		}
 		System.out.println();
 		
-		List<EntityWithValue<Move>> allMoves = chessEngine.getAllMoves(board, thinkMilliseconds, 50);
+		List<EntityWithValue<Move>> allMoves = chessEngine.getAllMoves(board, thinkMilliseconds, moveCount);
 		for (EntityWithValue<Move> moveValue : allMoves) {
 			System.out.printf("%15s %8.5f\n", moveValue.getEntity().toNotationString(), moveValue.getValue());
 		}
 
-		if (diagramFileName == null) {
-			diagramFileName = toDiagramFileName(board.toFenString());
-		}
-		
 		createDiagram(diagramFileName, board, allPositions, allMoves);
 	}
 
-	private static String toDiagramFileName(String fen) {
+	public static String toDiagramFileName(String fen) {
 		String convertedFen = fen.replace("/", "_").replace(" ", "_");
 		return "diagram_" + convertedFen + ".png";
 	}
 
-	private static void createDiagram(String diagramFileName, Board board, List<EntityWithValue<Position>> allPositions, List<EntityWithValue<Move>> allMoves) {
+	public static void createDiagram(String diagramFileName, Board board, List<? extends EntityWithValue<Position>> allPositions, List<? extends EntityWithValue<Move>> allMoves) {
+		if (diagramFileName == null) {
+			diagramFileName = toDiagramFileName(board.toFenString());
+		}
+
 		Map<String, Image> pieceImages = new HashMap<>();
 		try {
 			for(String pieceName : PIECE_NAMES) {
@@ -127,60 +131,65 @@ public class ChessEngineDiagram {
 				}
 			}
 		}
-		
-		for (EntityWithValue<Position> positionValue : allPositions) {
-			Position position = positionValue.getEntity();
-			
-			int pixelX = toFieldPixelX(position.getX());
-			int pixelY = toFieldPixelY(position.getY());
-			
-			graphics.setColor(position.getSide() == Side.White ? Color.YELLOW : Color.BLACK);
-			int positionValuePixels = toInt(positionValue.getValue() * 5);
-			int pieceValuePixels = toInt(position.getPiece().getValue() * 5);
-			graphics.setStroke(new BasicStroke(2));
-			graphics.drawLine(pixelX, pixelY + FIELD_PIXELS - VALUE_OFFSET_PIXELS, pixelX + positionValuePixels, pixelY + FIELD_PIXELS - VALUE_OFFSET_PIXELS);
-			graphics.setColor(position.getSide() == Side.White ? Color.DARK_GRAY : Color.YELLOW);
-			graphics.setStroke(new BasicStroke(1));
-			graphics.drawLine(pixelX + pieceValuePixels, pixelY + FIELD_PIXELS - VALUE_OFFSET_PIXELS + 1, pixelX + pieceValuePixels, pixelY + FIELD_PIXELS - VALUE_OFFSET_PIXELS - 1);
-		}
-		
-		for (EntityWithValue<Move> moveValue : allMoves) {
-			int sourceX = moveValue.getEntity().getSource().getX();
-			int sourceY = moveValue.getEntity().getSource().getY();
-			
-			int targetX = moveValue.getEntity().getTargetX();
-			int targetY = moveValue.getEntity().getTargetY();
 
-			int thickness = valueToThickness(moveValue.getValue());
-			Color color = valueToColor(moveValue.getValue());
-		
-			graphics.setColor(color);
-			
-			int sourceFieldCenterPixelX = toFieldCenterPixelX(sourceX);
-			int sourceFieldCenterPixelY = toFieldCenterPixelY(sourceY);
-			int targetFieldCenterPixelX = toFieldCenterPixelX(targetX);
-			int targetFieldCenterPixelY = toFieldCenterPixelY(targetY);
-			double arrowAngle = cartesianToAngle(targetFieldCenterPixelX-sourceFieldCenterPixelX, targetFieldCenterPixelY-sourceFieldCenterPixelY);
-			int arrowBaseLeftX = toInt(polarToX(arrowAngle-Math.PI/2, thickness));
-			int arrowBaseLeftY = toInt(polarToY(arrowAngle-Math.PI/2, thickness));
-			int arrowBaseRightX = toInt(polarToX(arrowAngle+Math.PI/2, thickness));
-			int arrowBaseRightY = toInt(polarToY(arrowAngle+Math.PI/2, thickness));
-			int[] xPoints = {
-					sourceFieldCenterPixelX + arrowBaseLeftX,
-					sourceFieldCenterPixelX + arrowBaseRightX,
-					targetFieldCenterPixelX
-			};
-			int[] yPoints = {
-					sourceFieldCenterPixelY + arrowBaseLeftY,
-					sourceFieldCenterPixelY + arrowBaseRightY,
-					targetFieldCenterPixelY
-			};
-			graphics.fillPolygon(xPoints, yPoints, xPoints.length);
-			
-			//graphics.drawLine(toFieldCenterPixelX(sourceX), sourceFieldCenterPixelY, toFieldCenterPixelX(targetX), toFieldCenterPixelY(targetY));
-			graphics.fillOval(toFieldCenterPixelX(targetX) - CIRCLE_RADIUS_PIXELS, toFieldCenterPixelY(targetY) - CIRCLE_RADIUS_PIXELS, 2*CIRCLE_RADIUS_PIXELS, 2*CIRCLE_RADIUS_PIXELS);
+		if (allPositions != null) {
+			for (EntityWithValue<Position> positionValue : allPositions) {
+				Position position = positionValue.getEntity();
+				
+				int pixelX = toFieldPixelX(position.getX());
+				int pixelY = toFieldPixelY(position.getY());
+				
+				graphics.setColor(position.getSide() == Side.White ? Color.YELLOW : Color.BLACK);
+				int positionValuePixels = toInt(positionValue.getValue() * 5);
+				int pieceValuePixels = toInt(position.getPiece().getValue() * 5);
+				graphics.setStroke(new BasicStroke(2));
+				graphics.drawLine(pixelX, pixelY + FIELD_PIXELS - VALUE_OFFSET_PIXELS, pixelX + positionValuePixels, pixelY + FIELD_PIXELS - VALUE_OFFSET_PIXELS);
+				graphics.setColor(position.getSide() == Side.White ? Color.DARK_GRAY : Color.YELLOW);
+				graphics.setStroke(new BasicStroke(1));
+				graphics.drawLine(pixelX + pieceValuePixels, pixelY + FIELD_PIXELS - VALUE_OFFSET_PIXELS + 1, pixelX + pieceValuePixels, pixelY + FIELD_PIXELS - VALUE_OFFSET_PIXELS - 1);
+			}
 		}
-		
+
+		if (allMoves != null) {
+			for (EntityWithValue<Move> moveValue : allMoves) {
+				int sourceX = moveValue.getEntity().getSource().getX();
+				int sourceY = moveValue.getEntity().getSource().getY();
+				
+				int targetX = moveValue.getEntity().getTargetX();
+				int targetY = moveValue.getEntity().getTargetY();
+				
+				double value = moveValue.getValue();
+				
+				int thickness = valueToThickness(value);
+				Color color = valueToColor(value);
+				
+				graphics.setColor(color);
+				
+				int sourceFieldCenterPixelX = toFieldCenterPixelX(sourceX);
+				int sourceFieldCenterPixelY = toFieldCenterPixelY(sourceY);
+				int targetFieldCenterPixelX = toFieldCenterPixelX(targetX);
+				int targetFieldCenterPixelY = toFieldCenterPixelY(targetY);
+				double arrowAngle = cartesianToAngle(targetFieldCenterPixelX-sourceFieldCenterPixelX, targetFieldCenterPixelY-sourceFieldCenterPixelY);
+				int arrowBaseLeftX = toInt(polarToX(arrowAngle-Math.PI/2, thickness));
+				int arrowBaseLeftY = toInt(polarToY(arrowAngle-Math.PI/2, thickness));
+				int arrowBaseRightX = toInt(polarToX(arrowAngle+Math.PI/2, thickness));
+				int arrowBaseRightY = toInt(polarToY(arrowAngle+Math.PI/2, thickness));
+				int[] xPoints = {
+						sourceFieldCenterPixelX + arrowBaseLeftX,
+						sourceFieldCenterPixelX + arrowBaseRightX,
+						targetFieldCenterPixelX
+				};
+				int[] yPoints = {
+						sourceFieldCenterPixelY + arrowBaseLeftY,
+						sourceFieldCenterPixelY + arrowBaseRightY,
+						targetFieldCenterPixelY
+				};
+				graphics.fillPolygon(xPoints, yPoints, xPoints.length);
+				
+				//graphics.drawLine(toFieldCenterPixelX(sourceX), sourceFieldCenterPixelY, toFieldCenterPixelX(targetX), toFieldCenterPixelY(targetY));
+				graphics.fillOval(toFieldCenterPixelX(targetX) - CIRCLE_RADIUS_PIXELS, toFieldCenterPixelY(targetY) - CIRCLE_RADIUS_PIXELS, 2*CIRCLE_RADIUS_PIXELS, 2*CIRCLE_RADIUS_PIXELS);
+			}
+		}
 		try {
 			File diagramFile = new File(diagramFileName);
 			ImageIO.write(image, "png", diagramFile);
