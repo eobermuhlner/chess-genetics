@@ -199,7 +199,16 @@ public class BoardTest {
 		assertEquals(false, board.isPatt());
 		assertMoves(board.getAllMoves(), "a2", "b1", "b2");
 	}	
-	
+
+	@Test
+	public void testKingCannotMoveIntoPawnThreat() {
+		Board board = newBoard(Side.White, "Ka1", "pa2");
+		assertEquals(false, board.isCheck());
+		assertEquals(false, board.isMate());
+		assertEquals(false, board.isPatt());
+		assertMoves(board.getAllMoves(), "a2", "b2");
+	}	
+
 	@Test
 	public void testKingMate() {
 		Board board = newBoard(Side.White, "Ka1", "ra8", "rb8");

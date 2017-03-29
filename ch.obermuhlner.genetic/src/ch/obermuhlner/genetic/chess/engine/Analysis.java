@@ -282,6 +282,7 @@ public class Analysis {
 		addMovePawnMustKill(position, x-1, y + direction, moves, attacks, defends);
 		
 		// TODO add en-passant
+		
 	}
 	
 	private void addKnightMoves(Position position, List<Move> moves, List<Position> attacks, List<Position> defends) {
@@ -383,6 +384,9 @@ public class Analysis {
 			return false;
 		}
 		
+		// special threat handling of optional pawn moves (might not be in list of all moves)
+		setThreatenedBy(position.getSide(), targetX, targetY);
+
 		Position target = getPosition(targetX, targetY);
 		if (target != null) {
 			if (target.getSide() != position.getSide()) {
