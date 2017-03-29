@@ -159,7 +159,9 @@ public class Analysis {
 		positionDefendsMap.put(position, defends);
 
 		for(Move move : moves) {
-			setThreatenedBy(move.getSource().getSide(), move.getTargetX(), move.getTargetY());
+			if (move.getSource().getPiece() != Piece.Pawn) {
+				setThreatenedBy(move.getSource().getSide(), move.getTargetX(), move.getTargetY());
+			}
 		}
 		
 		for(Position attacked : attacks) {
