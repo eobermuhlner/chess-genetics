@@ -85,14 +85,15 @@ public class ChessEngineDiagram {
 		createDiagram(diagramFileName, board, allPositions, allMoves);
 	}
 
-	public static String toDiagramFileName(String fen) {
+	public static String toDiagramFileName(Board board) {
+		String fen = board.toFenString();
 		String convertedFen = fen.replace("/", "_").replace(" ", "_");
-		return "diagram_" + convertedFen + ".png";
+		return "diagram_" + board.getMoveNumber() + "_" + convertedFen + ".png";
 	}
 
 	public static void createDiagram(String diagramFileName, Board board, List<? extends EntityWithValue<Position>> allPositions, List<? extends EntityWithValue<Move>> allMoves) {
 		if (diagramFileName == null) {
-			diagramFileName = toDiagramFileName(board.toFenString());
+			diagramFileName = toDiagramFileName(board);
 		}
 
 		Map<String, Image> pieceImages = new HashMap<>();
