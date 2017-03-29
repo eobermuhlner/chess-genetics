@@ -2,6 +2,8 @@ package ch.obermuhlner.genetic.chess.engine;
 
 public interface ChessEngine {
 
+	void setLookupTable(LookupTable lookupTable);
+
 	void setInfoLogger(InfoLogger infoLogger);
 	
 	void setStartPosition();

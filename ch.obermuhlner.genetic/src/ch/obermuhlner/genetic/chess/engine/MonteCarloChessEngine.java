@@ -11,6 +11,8 @@ import java.util.stream.Collectors;
 
 public class MonteCarloChessEngine implements ChessEngine {
 
+	private static final int DEFAULT_MOVE_COUNT = 200;
+
 	private final Random random = new Random();
 
 	private final ExecutorService executor = Executors.newSingleThreadExecutor();
@@ -75,12 +77,22 @@ public class MonteCarloChessEngine implements ChessEngine {
 		}
 	}
 
+	private LookupTable lookupTable = new LookupTable() {
+	};
+
 	private InfoLogger infoLogger;
 
 	private Board board;
 
 	private List<Move> allMoves;
 
+	public MonteCarloChessEngine() {
+	}
+
+	public void setLookupTable(LookupTable lookupTable) {
+		this.lookupTable = lookupTable;
+	}
+	
 	@Override
 	public void setInfoLogger(InfoLogger infoLogger) {
 		this.infoLogger = infoLogger;
@@ -109,12 +121,10 @@ public class MonteCarloChessEngine implements ChessEngine {
 	}
 
 	class BestMoveCalculationState implements CalculationState<String>, Runnable {
-		private static final int DEFAULT_MOVE_COUNT = 50;
-
 		private static final boolean CREATE_DIAGRAMS = true;
 		
 		private volatile boolean finished = false;
-		private volatile Move result;
+		private volatile String result;
 		private long thinkMilliseconds;
 		private final CountDownLatch countDownLatch = new CountDownLatch(1);
 		
@@ -137,13 +147,18 @@ public class MonteCarloChessEngine implements ChessEngine {
 				// ignore
 			}
 			
-			return toMoveString(result);
+			return result;
 		}
 
 		@Override
 		public void run() {
-			if (thinkMilliseconds == 0) {
-				result = findBestMoveWithoutThinking(board);
+			String lookupMove = lookupTable.bestMove(board);
+			if (lookupMove != null) {
+				result = lookupMove;
+				
+			} else if (thinkMilliseconds == 0) {
+				result = toMoveString(findBestMoveWithoutThinking(board));
+				
 			} else {
 				List<Move> allMoves = board.getAllMoves();
 				if (!allMoves.isEmpty()) {
@@ -181,7 +196,7 @@ public class MonteCarloChessEngine implements ChessEngine {
 					if (CREATE_DIAGRAMS) {
 						ChessEngineDiagram.createDiagram(null, board, null, moveStatistics);
 					}
-					result = moveStatistics.get(0).move;
+					result = toMoveString(moveStatistics.get(0).move);
 				}
 			}
 

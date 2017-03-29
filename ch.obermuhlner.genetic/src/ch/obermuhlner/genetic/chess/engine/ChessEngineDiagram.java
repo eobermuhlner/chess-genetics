@@ -20,8 +20,8 @@ import ch.obermuhlner.genetic.chess.engine.MonteCarloChessEngine.EntityWithValue
 
 public class ChessEngineDiagram {
 
-	private static final int DEFAULT_THINK_MILLISECONDS = 10000;
-	private static final int DEFAULT_MOVE_COUNT = 50;
+	private static final int DEFAULT_THINK_MILLISECONDS = 20000;
+	private static final int DEFAULT_MOVE_COUNT = 300;
 
 	private static final String[] PIECE_NAMES = {
 			"black_pawn", "black_knight", "black_bishop", "black_rook", "black_queen", "black_king",

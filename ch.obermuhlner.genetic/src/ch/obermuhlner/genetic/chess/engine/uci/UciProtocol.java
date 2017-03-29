@@ -1,6 +1,7 @@
 package ch.obermuhlner.genetic.chess.engine.uci;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,6 +14,7 @@ import ch.obermuhlner.genetic.chess.engine.ChessEngine;
 import ch.obermuhlner.genetic.chess.engine.ChessEngine.CalculationState;
 import ch.obermuhlner.genetic.chess.engine.InfoLogger;
 import ch.obermuhlner.genetic.chess.engine.MonteCarloChessEngine;
+import ch.obermuhlner.genetic.chess.engine.SimpleLookupTable;
 
 public class UciProtocol implements InfoLogger {
 
@@ -231,8 +233,13 @@ public class UciProtocol implements InfoLogger {
 	}
 
 	public static void main(String[] args) {
-		//UciProtocol uciProtocol = new UciProtocol(new DebugChessEngine());
-		UciProtocol uciProtocol = new UciProtocol(new MonteCarloChessEngine());
+		SimpleLookupTable lookupTable = new SimpleLookupTable();
+		lookupTable.load(new File("resources/openings.txt"));
+		
+		MonteCarloChessEngine chessEngine = new MonteCarloChessEngine();
+		chessEngine.setLookupTable(lookupTable);
+		
+		UciProtocol uciProtocol = new UciProtocol(chessEngine);
 		
 		uciProtocol.run();
 	}
