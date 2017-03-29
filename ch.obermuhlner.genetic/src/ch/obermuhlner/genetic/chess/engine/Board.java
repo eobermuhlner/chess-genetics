@@ -15,6 +15,9 @@ public class Board {
 	
 	private Side sideToMove = Side.White;
 	
+	private int moveNumber = 0;
+	private int fiftyMoveNumber = 0;
+	
 	private Analysis analysis;
 
 	public Board() {
@@ -76,13 +79,27 @@ public class Board {
 		
 		invalidateAnalysis();
 	}
+	
+	// rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2
 
 	public void setFenString(String fen) {
 		String[] splitFen = fen.split(" +");
 		List<Position> fenPositions = toFenPositions(splitFen[0]);
 		Side fenSide = Side.White;
-		if (splitFen.length >= 2) {
+		if (splitFen.length > 1) {
 			fenSide = splitFen[1].equals("w") ? Side.White : Side.Black;
+		}
+		if (splitFen.length > 2) {
+			// ignore castling info
+		}
+		if (splitFen.length > 3) {
+			// ignore en passant info
+		}
+		if (splitFen.length > 4) {
+			moveNumber = Integer.parseInt(splitFen[4]);
+		}
+		if (splitFen.length > 5) {
+			fiftyMoveNumber = Integer.parseInt(splitFen[5]);
 		}
 		
 		clear();
@@ -192,6 +209,14 @@ public class Board {
 		
 	public Side getSideToMove() {
 		return sideToMove;
+	}
+	
+	public int getMoveNumber() {
+		return moveNumber;
+	}
+	
+	public int getFiftyMoveNumber() {
+		return fiftyMoveNumber;
 	}
 	
 	public boolean isFinished() {
@@ -359,10 +384,11 @@ public class Board {
 		
 		positions.remove(source);
 		positions.remove(move.getKill());
+		positions.remove(move.getCastle());
 
-		if (source.getPiece() == Piece.King && move.getKill() != null && move.getKill().getPiece() == Piece.Rook && source.getSide() == move.getKill().getSide()) {
+		if (move.getCastle() != null) {
 			// castling (rochade)
-			int kingDirectionX = move.getKill().getX() > source.getX() ? +1 : -1;
+			int kingDirectionX = move.getCastle().getX() > source.getX() ? +1 : -1;
 
 			Position newKingPosition = new Position(Piece.King, source.getSide(), source.getX() + kingDirectionX*2, source.getY());
 			positions.add(newKingPosition);
@@ -377,6 +403,8 @@ public class Board {
 		}
 		
 		sideToMove = sideToMove.otherSide();
+		moveNumber++;
+		// TODO update fiftyMoveNumber
 
 		invalidateAnalysis();
 	}
