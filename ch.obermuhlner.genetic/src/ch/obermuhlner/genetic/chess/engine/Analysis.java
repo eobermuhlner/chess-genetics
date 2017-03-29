@@ -181,7 +181,9 @@ public class Analysis {
 		addAllMoves(position, moves, attacks, defends);
 		
 		for(Move move : moves) {
-			setThreatenedBy(move.getSource().getSide(), move.getTargetX(), move.getTargetY());
+			if (move.getSource().getPiece() != Piece.Pawn) {
+				setThreatenedBy(move.getSource().getSide(), move.getTargetX(), move.getTargetY());
+			}
 		}
 		for(Position defended : defends) {
 			setThreatenedBy(position.getSide(), defended.getX(), defended.getY());
