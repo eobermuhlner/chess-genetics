@@ -34,6 +34,10 @@ public enum Piece {
 		this.maxMoves = maxMoves;
 		this.maxAttacks = maxAttacks;
 	}
+
+	public char getCharacter() {
+		return character;
+	}
 	
 	public char getCharacter(Side side) {
 		return side == Side.White ? getWhiteCharacter() : getBlackCharacter();

@@ -93,6 +93,18 @@ public class Move {
 		return toNotationString();
 	}
 	
+	public String toUciString() {
+		StringBuilder result = new StringBuilder();
+
+		result.append(getSource().getPositionString());
+		result.append(getTargetPositionString());
+		if (convert != null) {
+			result.append(convert.getCharacter());
+		}
+		
+		return result.toString();
+	}
+	
 	public String toNotationString() {
 		StringBuilder result = new StringBuilder();
 		result.append(source);

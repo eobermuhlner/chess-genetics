@@ -202,8 +202,8 @@ public class MonteCarloChessEngine implements ChessEngine {
 		if (move == null) {
 			return "(none)";
 		}
-		
-		return move.getSource().getPositionString() + move.getTargetPositionString();
+	
+		return move.toUciString();
 	}
 
 	@Override
