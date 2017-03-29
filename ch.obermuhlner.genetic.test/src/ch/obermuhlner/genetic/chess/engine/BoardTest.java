@@ -210,6 +210,14 @@ public class BoardTest {
 	}	
 
 	@Test
+	public void testKingInCheckKillAttacker() {
+		Board board = newBoard(Side.White, "Ka1", "ra8", "Rh8");
+		assertEquals(true, board.isCheck());
+		assertEquals(false, board.isMate());
+		assertEquals(false, board.isPatt());
+		assertMoves(board.getAllMoves(), "b1", "b2", "a8");
+	}	
+	@Test
 	public void testKingMate() {
 		Board board = newBoard(Side.White, "Ka1", "ra8", "rb8");
 		assertEquals(true, board.isCheck());

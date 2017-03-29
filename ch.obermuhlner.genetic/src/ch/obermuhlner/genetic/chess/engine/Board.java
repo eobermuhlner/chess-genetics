@@ -2,6 +2,7 @@ package ch.obermuhlner.genetic.chess.engine;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 import java.util.stream.Collectors;
 
@@ -19,6 +20,8 @@ public class Board {
 	private int fiftyMoveNumber = 0;
 	
 	private Analysis analysis;
+
+	private Optional<Position> optionalKing;
 
 	public Board() {
 		this(new InfoLogger() {
@@ -293,15 +296,32 @@ public class Board {
 	private List<Move> getAllMovesUnderCheck() {
 		List<Move> moves = new ArrayList<>();
 		
-		moves.addAll(positions.stream()
+		optionalKing = positions.stream()
 			.filter(position -> position.getSide() == sideToMove && position.getPiece() == Piece.King)
-			.flatMap(position -> getAnalysis().getMoves(position).stream())
-			.filter(move -> !isStillInCheck(move))
-			.collect(Collectors.toList()));
-		
-		// TODO find moves that kill checking piece
-		// TODO find moves that intercept checking move
-		
+			.findAny();
+
+		if (optionalKing.isPresent()) {
+			Position king = optionalKing.get();
+			
+			moves.addAll(getAnalysis().getMoves(king).stream()
+					.filter(move -> !isStillInCheck(move))
+					.collect(Collectors.toList()));
+			
+			List<Position> attackers = getAnalysis().getAttackers(king);
+			if (attackers.size() == 1) {
+				// only 1 attacker can get killed or intercepted - give up on multiple attackers
+
+				// find moves that kill checking piece
+				Position attacker = attackers.get(0);
+				List<Position> kingsGuards = getAnalysis().getAttackers(attacker);
+				moves.addAll(kingsGuards.stream()
+					.flatMap(guard -> getAnalysis().getMoves(guard).stream())
+					.filter(move -> attacker.equals(move.getKill()))
+					.collect(Collectors.toList()));
+				
+				// TODO find moves that intercept checking move
+			}
+		}
 		return moves;
 	}
 
