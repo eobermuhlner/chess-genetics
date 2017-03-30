@@ -1,5 +1,6 @@
 package ch.obermuhlner.genetic.chess.engine;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Random;
 
@@ -7,7 +8,7 @@ import ch.obermuhlner.genetic.chess.engine.MonteCarloChessEngine.EntityWithValue
 
 public class RandomUtil {
 
-	public static <E> E pickRandom(Random random, List<? extends EntityWithValue<E>> allEntitiesWithValue) {
+	public static <E> E pickRandom(Random random, Collection<? extends EntityWithValue<E>> allEntitiesWithValue) {
 		if (allEntitiesWithValue.isEmpty()) {
 			return null;
 		}
@@ -34,7 +35,7 @@ public class RandomUtil {
 		}
 
 		// should not happen, but just to be save in case of rounding errors
-		return allEntitiesWithValue.get(0).getEntity();
+		return allEntitiesWithValue.iterator().next().getEntity();
 	}
 
 
