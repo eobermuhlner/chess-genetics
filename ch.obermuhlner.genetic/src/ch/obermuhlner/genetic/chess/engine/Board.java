@@ -87,6 +87,7 @@ public class Board {
 
 	public void setFenString(String fen) {
 		String[] splitFen = fen.split(" +");
+		
 		List<Position> fenPositions = toFenPositions(splitFen[0]);
 		Side fenSide = Side.White;
 		if (splitFen.length > 1) {
@@ -107,8 +108,8 @@ public class Board {
 		
 		clear();
 		positions.addAll(fenPositions);
-		sideToMove = fenSide;
 		
+		setSideToMove(fenSide);
 		invalidateAnalysis();
 	}
 
