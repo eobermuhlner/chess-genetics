@@ -38,18 +38,25 @@ public class SimpleLookupTable implements LookupTable {
 	}
 	
 	private void parseLine(String line) {
-		String[] split = line.split(" +");
+		String[] moves = line.split(" +");
 		
 		Board board = new Board();
-		for (String move : split) {
-			if (move.equals(":")) {
+		for (String moveWithValue : moves) {
+			if (moveWithValue.equals("#")) {
 				break;
+			}
+			
+			String[] moveParts = moveWithValue.split(":");
+			String move = moveParts[0];
+			double probability = 1;
+			if (moveParts.length > 1) {
+				probability = Double.parseDouble(moveParts[1]);
 			}
 			
 			String fen = board.toFenString();
 			
 			Set<EntityValueTuple<String>> recommendedMoves = fenToRecommendedMoves.computeIfAbsent(fen, (key) -> new HashSet<>());
-			recommendedMoves.add(new EntityValueTuple<>(move, 1.0));
+			recommendedMoves.add(new EntityValueTuple<>(move, probability));
 			
 			board.move(move);
 		}
