@@ -5,7 +5,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
@@ -16,6 +18,8 @@ public class SimpleLookupTable implements LookupTable {
 	private final Map<String, Set<EntityValueTuple<String>>> fenToRecommendedMoves = new ConcurrentHashMap<>();
 
 	private final Random random = new Random();
+	
+	private List<String> lastMoves = new ArrayList<>();
 	
 	public SimpleLookupTable() {
 	}
@@ -38,27 +42,35 @@ public class SimpleLookupTable implements LookupTable {
 	}
 	
 	private void parseLine(String line) {
-		String[] moves = line.split(" +");
+		System.out.println(line);
+		String[] moves = line.split("\\s+");
 		
 		Board board = new Board();
-		for (String moveWithValue : moves) {
-			if (moveWithValue.equals("#")) {
+		for (int i = 0; i < moves.length; i++) {
+			String move = moves[i];
+
+			if (move.equals("#")) {
 				break;
 			}
 			
-			String[] moveParts = moveWithValue.split(":");
-			String move = moveParts[0];
-			double probability = 1;
-			if (moveParts.length > 1) {
-				probability = Double.parseDouble(moveParts[1]);
+			if (move.equals(".")) {
+				move = lastMoves.get(i);
+				board.move(move);
+			} else {
+				lastMoves = new ArrayList<>(lastMoves.subList(0, i));
+				lastMoves.add(move);
+				double probability = 1;
+				if (moves.length > i + 1) {
+					probability = Double.parseDouble(moves[++i]);
+				}
+				
+				String fen = board.toFenString();
+				
+				Set<EntityValueTuple<String>> recommendedMoves = fenToRecommendedMoves.computeIfAbsent(fen, (key) -> new HashSet<>());
+				recommendedMoves.add(new EntityValueTuple<>(move, probability));
+				board.move(move);
+				break;
 			}
-			
-			String fen = board.toFenString();
-			
-			Set<EntityValueTuple<String>> recommendedMoves = fenToRecommendedMoves.computeIfAbsent(fen, (key) -> new HashSet<>());
-			recommendedMoves.add(new EntityValueTuple<>(move, probability));
-			
-			board.move(move);
 		}
 	}
 
