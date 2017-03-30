@@ -22,31 +22,6 @@ public class MonteCarloChessEngine implements ChessEngine {
 		double getValue();
 	}
 	
-	public static class EntityWithFixValue<E> implements EntityWithValue<E> {
-		private final E entity;
-		private final double value;
-		
-		public EntityWithFixValue(E entity, double value) {
-			this.entity = entity;
-			this.value = value;
-		}
-		
-		@Override
-		public E getEntity() {
-			return entity;
-		}
-		
-		@Override
-		public double getValue() {
-			return value;
-		}
-
-		@Override
-		public String toString() {
-			return String.format("%s(%6.4f)", entity, value);
-		}
-	}
-
 	private static class MoveStatistic implements EntityWithValue<Move> {
 		Move move;
 		int playCount;
@@ -271,7 +246,7 @@ public class MonteCarloChessEngine implements ChessEngine {
 		}
 
 		List<EntityWithValue<Move>> allMoveValues = allMoves.stream()
-			.map(move -> new EntityWithFixValue<>(move, board.getValue(move)))
+			.map(move -> new EntityValueTuple<>(move, board.getValue(move)))
 			.collect(Collectors.toList());
 
 		return RandomUtil.pickRandom(random, allMoveValues);
@@ -279,7 +254,7 @@ public class MonteCarloChessEngine implements ChessEngine {
 
 	public List<EntityWithValue<Position>> getAllPositions(Board board) {
 		return board.getPositions().stream()
-			.map(position -> new EntityWithFixValue<>(position, board.getValue(position)))
+			.map(position -> new EntityValueTuple<>(position, board.getValue(position)))
 			.sorted((p1, p2) -> {
 				return -Double.compare(p1.value, p2.value);
 			})
@@ -322,7 +297,7 @@ public class MonteCarloChessEngine implements ChessEngine {
 		
 		List<EntityWithValue<Move>> result = new ArrayList<>();
 		for (MoveStatistic moveStatistic : moveStatistics) {
-			result.add(new EntityWithFixValue<Move>(moveStatistic.move, moveStatistic.getValue()));
+			result.add(new EntityValueTuple<Move>(moveStatistic.move, moveStatistic.getValue()));
 		}
 		return result;
 	}
