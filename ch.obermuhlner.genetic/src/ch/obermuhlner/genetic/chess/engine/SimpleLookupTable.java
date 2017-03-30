@@ -5,9 +5,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
@@ -15,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class SimpleLookupTable implements LookupTable {
 
-	private final Map<String, Set<String>> fenToRecommendedMoves = new ConcurrentHashMap<>();
+	private final Map<String, Set<EntityValueTuple<String>>> fenToRecommendedMoves = new ConcurrentHashMap<>();
 
 	private final Random random = new Random();
 	
@@ -50,8 +48,8 @@ public class SimpleLookupTable implements LookupTable {
 			
 			String fen = board.toFenString();
 			
-			Set<String> recommendedMoves = fenToRecommendedMoves.computeIfAbsent(fen, (key) -> new HashSet<>());
-			recommendedMoves.add(move);
+			Set<EntityValueTuple<String>> recommendedMoves = fenToRecommendedMoves.computeIfAbsent(fen, (key) -> new HashSet<>());
+			recommendedMoves.add(new EntityValueTuple<>(move, 1.0));
 			
 			board.move(move);
 		}
@@ -61,20 +59,18 @@ public class SimpleLookupTable implements LookupTable {
 	public String bestMove(Board board) {
 		String fen = board.toFenString();
 		
-		Set<String> recommendedMoves = fenToRecommendedMoves.get(fen);
+		Set<EntityValueTuple<String>> recommendedMoves = fenToRecommendedMoves.get(fen);
 		
 		if (recommendedMoves == null) {
 			return null;
 		}
-
-		List<String> recommendedMovesList = new ArrayList<>(recommendedMoves);
 
 		try {
 			Thread.sleep(200);
 		} catch (InterruptedException e) {
 			// ignored
 		}
-		
-		return recommendedMovesList.get(random.nextInt(recommendedMovesList.size()));
+
+		return RandomUtil.pickRandom(random, recommendedMoves);
 	}
 }
