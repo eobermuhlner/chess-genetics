@@ -26,7 +26,7 @@ public class SimpleLookupTable implements LookupTable {
 		try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
 			String line = reader.readLine();
 			while (line != null) {
-				if (!line.isEmpty()) {
+				if (!line.isEmpty() && !line.startsWith("#")) {
 					parseLine(line);
 				}
 				
