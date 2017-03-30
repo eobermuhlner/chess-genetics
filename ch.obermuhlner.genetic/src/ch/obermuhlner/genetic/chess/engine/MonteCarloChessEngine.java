@@ -274,7 +274,7 @@ public class MonteCarloChessEngine implements ChessEngine {
 			.map(move -> new EntityWithFixValue<>(move, board.getValue(move)))
 			.collect(Collectors.toList());
 
-		return pickRandom(allMoveValues);
+		return RandomUtil.pickRandom(random, allMoveValues);
 	}
 
 	public List<EntityWithValue<Position>> getAllPositions(Board board) {
@@ -416,36 +416,6 @@ public class MonteCarloChessEngine implements ChessEngine {
 		}
 		
 		return null;
-	}
-
-	private <E> E pickRandom(List<? extends EntityWithValue<E>> allEntitiesWithValue) {
-		if (allEntitiesWithValue.isEmpty()) {
-			return null;
-		}
-		
-		double total = 0;
-		double min = 0;
-		for (EntityWithValue<E> entityWithValue : allEntitiesWithValue) {
-			double value = entityWithValue.getValue();
-			total += value;
-			min = Math.min(min, value);
-		}
-
-		double offset = -min;
-		total += offset * allEntitiesWithValue.size();
-
-		double r = random.nextDouble() * total;
-		
-		total = 0;
-		for (EntityWithValue<E> entityWithValue : allEntitiesWithValue) {
-			total += entityWithValue.getValue() + offset;
-			if (r <= total) {
-				return entityWithValue.getEntity();
-			}
-		}
-
-		// should not happen, but just to be save in case of rounding errors
-		return allEntitiesWithValue.get(0).getEntity();
 	}
 
 	public static void main(String[] args) {
