@@ -354,6 +354,8 @@ public class Analysis {
 		addMoveIfSave(position, x+1, y-1, moves, attacks, defends);
 		addMoveIfSave(position, x+1, y+0, moves, attacks, defends);
 		addMoveIfSave(position, x+1, y+1, moves, attacks, defends);
+		
+		// TODO castling
 	}
 	
 	private Move addMoveIfSave(Position position, int targetX, int targetY, List<Move> moves, List<Position> attacks, List<Position> defends) {
