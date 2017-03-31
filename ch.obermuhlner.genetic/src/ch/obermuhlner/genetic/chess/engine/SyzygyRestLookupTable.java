@@ -40,11 +40,11 @@ public class SyzygyRestLookupTable implements LookupTable {
 			}
 			return result.toString();
 		} catch (ProtocolException e) {
-			e.printStackTrace();
+			// ignore
 		} catch (MalformedURLException e) {
-			e.printStackTrace();
+			// ignore
 		} catch (IOException e) {
-			e.printStackTrace();
+			// ignore
 		}
 		return null;
 	}
