@@ -83,8 +83,6 @@ public class Board {
 		invalidateAnalysis();
 	}
 	
-	// rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2
-
 	public void setFenString(String fen) {
 		String[] splitFen = fen.split(" +");
 		
@@ -248,7 +246,7 @@ public class Board {
 	}
 	
 	public double getValue(Move move) {
-		return getAnalysis().getValue(move); // TODO
+		return getAnalysis().getValue(move);
 	}
 	
 	public double getValue() {
@@ -316,6 +314,7 @@ public class Board {
 				Position attacker = attackers.get(0);
 				List<Position> kingsGuards = getAnalysis().getAttackers(attacker);
 				moves.addAll(kingsGuards.stream()
+					.filter(guard -> moveWillLeaveInCheck(guard))
 					.flatMap(guard -> getAnalysis().getMoves(guard).stream())
 					.filter(move -> attacker.equals(move.getKill()))
 					.collect(Collectors.toList()));
