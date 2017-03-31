@@ -25,7 +25,7 @@ public class Board {
 
 	public Board() {
 		this(new InfoLogger() {
-			public void infoString(String message) {
+			public void info(String message) {
 				System.out.println(message);
 			}
 		});

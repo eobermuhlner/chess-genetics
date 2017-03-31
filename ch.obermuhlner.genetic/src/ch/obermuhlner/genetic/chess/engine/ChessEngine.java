@@ -10,6 +10,8 @@ public interface ChessEngine {
 	
 	void setFen(String fen);
 	
+	String getFen();
+	
 	boolean isWhiteToMove();
 	
 	double evaluate();

@@ -97,6 +97,10 @@ public class UciProtocol implements InfoLogger {
 		case "go":
 			executeGo(args);
 			break;
+		case "d":
+		case "diagram":
+			executeDiagram(args);
+			break;
 		default:
 			println("Unknown command: " + Arrays.toString(args));
 		}
@@ -114,6 +118,10 @@ public class UciProtocol implements InfoLogger {
 	
 	private void executeIsready(String[] args) {
 		println("readyok");
+	}
+
+	private void executeDiagram(String[] args) {
+		info("string FEN " + chessEngine.getFen());
 	}
 
 	private void executeGo(String[] args) {
@@ -220,8 +228,8 @@ public class UciProtocol implements InfoLogger {
 	}
 
 	@Override
-	public void infoString(String message) {
-		println("info string " + message);
+	public void info(String message) {
+		println("info " + message);
 	}
 	
 	private void println(String message) {

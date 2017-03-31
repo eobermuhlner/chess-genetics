@@ -84,6 +84,11 @@ public class MonteCarloChessEngine implements ChessEngine {
 		board = new Board(infoLogger);
 		board.setFenString(fen);
 	}
+	
+	@Override
+	public String getFen() {
+		return board.toFenString();
+	}
 
 	@Override
 	public boolean isWhiteToMove() {
@@ -96,7 +101,7 @@ public class MonteCarloChessEngine implements ChessEngine {
 	}
 
 	class BestMoveCalculationState implements CalculationState<String>, Runnable {
-		private static final boolean CREATE_DIAGRAMS = true;
+		private static final boolean CREATE_DIAGRAMS = false;
 		
 		private volatile boolean finished = false;
 		private volatile String result;
@@ -165,15 +170,18 @@ public class MonteCarloChessEngine implements ChessEngine {
 					sortStatistics(moveStatistics);
 					
 					for (MoveStatistic moveStatistic : moveStatistics) {
-						infoLogger.infoString("statistics " + moveStatistic);
+						infoLogger.info("string statistics " + moveStatistic);
 					}
 					
 					if (CREATE_DIAGRAMS) {
 						ChessEngineDiagram.createDiagram(null, board, null, moveStatistics);
 					}
-					result = toMoveString(moveStatistics.get(0).move);
+					Move bestMove = moveStatistics.get(0).move;
+					result = toMoveString(bestMove);
 				}
 			}
+
+			printMoveScore(result);
 
 			finished = true;
 			countDownLatch.countDown();
@@ -188,6 +196,16 @@ public class MonteCarloChessEngine implements ChessEngine {
 		return bestMoveCalculationState;
 	}
 	
+	public void printMoveScore(String move) {
+		Board localBoard = board.clone();
+		if (!move.equals("(none)")) {
+			localBoard.move(move);
+		}
+		int centipawnScore = (int) (localBoard.getValue() * 100);
+		infoLogger.info("score " + centipawnScore + " cp");
+		
+	}
+
 	private String toMoveString(Move move) {
 		if (move == null) {
 			return "(none)";
