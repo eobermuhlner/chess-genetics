@@ -513,6 +513,8 @@ public class Board {
 		builder.append(" ");
 		builder.append(sideToMove == Side.White ? "w" : "b");
 		
+		builder.append(" - - 0 1"); // TODO real FEN string
+		
 		return builder.toString();
 	}
 

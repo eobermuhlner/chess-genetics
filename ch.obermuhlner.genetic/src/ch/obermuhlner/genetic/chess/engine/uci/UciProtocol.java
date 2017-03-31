@@ -11,10 +11,13 @@ import java.io.PrintWriter;
 import java.util.Arrays;
 
 import ch.obermuhlner.genetic.chess.engine.ChessEngine;
+import ch.obermuhlner.genetic.chess.engine.CompositeLookupTable;
 import ch.obermuhlner.genetic.chess.engine.ChessEngine.CalculationState;
 import ch.obermuhlner.genetic.chess.engine.InfoLogger;
+import ch.obermuhlner.genetic.chess.engine.LookupTable;
 import ch.obermuhlner.genetic.chess.engine.MonteCarloChessEngine;
 import ch.obermuhlner.genetic.chess.engine.SimpleLookupTable;
+import ch.obermuhlner.genetic.chess.engine.SyzygyRestLookupTable;
 
 public class UciProtocol implements InfoLogger {
 
@@ -241,11 +244,14 @@ public class UciProtocol implements InfoLogger {
 	}
 
 	public static void main(String[] args) {
-		SimpleLookupTable lookupTable = new SimpleLookupTable();
-		lookupTable.load(new File("resources/openings.txt"));
+		SimpleLookupTable openingLookup = new SimpleLookupTable();
+		openingLookup.load(new File("resources/openings.txt"));
+		
+		LookupTable endgameLookup = new SyzygyRestLookupTable();
 		
 		MonteCarloChessEngine chessEngine = new MonteCarloChessEngine();
-		chessEngine.setLookupTable(lookupTable);
+		
+		chessEngine.setLookupTable(new CompositeLookupTable(openingLookup, endgameLookup));
 		
 		UciProtocol uciProtocol = new UciProtocol(chessEngine);
 		
