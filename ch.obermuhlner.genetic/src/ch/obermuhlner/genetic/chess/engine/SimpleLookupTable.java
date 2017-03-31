@@ -42,7 +42,6 @@ public class SimpleLookupTable implements LookupTable {
 	}
 	
 	private void parseLine(String line) {
-		System.out.println(line);
 		String[] moves = line.split("\\s+");
 		
 		Board board = new Board();
