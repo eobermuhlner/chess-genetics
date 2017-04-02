@@ -1,7 +1,6 @@
 package ch.obermuhlner.genetic.chess.engine;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Random;
 
 import ch.obermuhlner.genetic.chess.engine.MonteCarloChessEngine.EntityWithValue;
