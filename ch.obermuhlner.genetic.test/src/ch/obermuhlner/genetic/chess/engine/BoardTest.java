@@ -18,6 +18,13 @@ public class BoardTest {
 	}
 
 	@Test
+	public void testGetFenPositionString() {
+		Board board = new Board();
+		board.setStartPosition();
+		assertEquals("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w", board.toFenPositionString());
+	}
+
+	@Test
 	public void testSetFenString() {
 		Board board = new Board();
 

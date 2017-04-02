@@ -16,8 +16,8 @@ public class Board {
 	
 	private Side sideToMove = Side.White;
 	
+	private int halfMoveSinceCaptureOrPawnAdvanceNumber = 0;
 	private int moveNumber = 0;
-	private int fiftyMoveNumber = 0;
 	
 	private Analysis analysis;
 	
@@ -95,12 +95,12 @@ public class Board {
 			// ignore en passant info
 		}
 		if (splitFen.length > 4) {
-			moveNumber = Integer.parseInt(splitFen[4]);
-		}
-		if (splitFen.length > 5) {
-			fiftyMoveNumber = Integer.parseInt(splitFen[5]);
+			halfMoveSinceCaptureOrPawnAdvanceNumber = Integer.parseInt(splitFen[4]);
 		}
 		
+		if (splitFen.length > 5) {
+			moveNumber = Integer.parseInt(splitFen[5]);
+		}
 		clear();
 		positions.addAll(fenPositions);
 		
@@ -215,7 +215,7 @@ public class Board {
 	}
 	
 	public int getFiftyMoveNumber() {
-		return fiftyMoveNumber;
+		return halfMoveSinceCaptureOrPawnAdvanceNumber;
 	}
 	
 	public boolean isFinished() {
@@ -420,8 +420,8 @@ public class Board {
 		}
 		
 		sideToMove = sideToMove.otherSide();
+		halfMoveSinceCaptureOrPawnAdvanceNumber++;
 		moveNumber++;
-		// TODO update fiftyMoveNumber
 
 		invalidateAnalysis();
 	}
@@ -463,7 +463,7 @@ public class Board {
 		board.positions.addAll(positions);
 		board.sideToMove = sideToMove;
 		board.moveNumber = moveNumber;
-		board.fiftyMoveNumber = fiftyMoveNumber;
+		board.halfMoveSinceCaptureOrPawnAdvanceNumber = halfMoveSinceCaptureOrPawnAdvanceNumber;
 				
 		return board;
 	}
@@ -474,6 +474,16 @@ public class Board {
 	}
 
 	public String toFenString() {
+		StringBuilder builder = new StringBuilder();
+
+		builder.append(toFenPositionString());
+		
+		builder.append(" - - 0 1"); // TODO real FEN string
+		
+		return builder.toString();
+	}
+	
+	public String toFenPositionString() {
 		StringBuilder builder = new StringBuilder();
 
 		char[] charBoard = new char[64];
@@ -511,8 +521,6 @@ public class Board {
 		
 		builder.append(" ");
 		builder.append(sideToMove == Side.White ? "w" : "b");
-		
-		builder.append(" - - 0 1"); // TODO real FEN string
 		
 		return builder.toString();
 	}

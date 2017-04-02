@@ -64,7 +64,7 @@ public class SimpleLookupTable implements LookupTable {
 					probability = Double.parseDouble(moves[++i]);
 				}
 				
-				String fen = board.toFenString();
+				String fen = board.toFenPositionString();
 				
 				Set<EntityValueTuple<String>> recommendedMoves = fenToRecommendedMoves.computeIfAbsent(fen, (key) -> new HashSet<>());
 				recommendedMoves.add(new EntityValueTuple<>(move, probability));
@@ -76,7 +76,7 @@ public class SimpleLookupTable implements LookupTable {
 
 	@Override
 	public String bestMove(Board board, InfoLogger infoLogger) {
-		String fen = board.toFenString();
+		String fen = board.toFenPositionString();
 		
 		Set<EntityValueTuple<String>> recommendedMoves = fenToRecommendedMoves.get(fen);
 		
