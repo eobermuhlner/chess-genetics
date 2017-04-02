@@ -16,9 +16,9 @@ public class CompositeLookupTable implements LookupTable {
 	}
 
 	@Override
-	public String bestMove(Board board) {
+	public String bestMove(Board board, InfoLogger infoLogger) {
 		for (LookupTable lookupTable : lookupTables) {
-			String bestMove = lookupTable.bestMove(board);
+			String bestMove = lookupTable.bestMove(board, infoLogger);
 			if (bestMove != null) {
 				return bestMove;
 			}

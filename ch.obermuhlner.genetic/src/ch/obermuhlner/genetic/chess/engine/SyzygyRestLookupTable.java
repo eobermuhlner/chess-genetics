@@ -14,17 +14,20 @@ import java.util.regex.Pattern;
 // https://syzygy-tables.info/api/v2?fen=4k1r1/8/8/8/8/8/3K4/2Q5%20b%20-%20-%200%201
 public class SyzygyRestLookupTable implements LookupTable {
 
-	private static final Pattern BEST_MOVE_PATTERN = Pattern.compile("\"bestmove\"\\s*:\\s*\"([a-h0-9nbrq]+)\""); 
+	private static final Pattern BEST_MOVE_PATTERN = Pattern.compile("\"bestmove\"\\s*:\\s*\"([a-h1-8nbrq]+)\""); 
 	
 	@Override
-	public String bestMove(Board board) {
+	public String bestMove(Board board, InfoLogger infoLogger) {
 		String fen = board.toFenString();
 		String json = getHttp(escapeUrl("http://syzygy-tables.info/api/v2?fen=" + fen));
 		if (json == null) {
 			return null;
 		}
 		
-		return getJsonBestMove(json);
+		//infoLogger.info("string syzygy json " + json.replace('\n', ' '));
+		String bestMove = getJsonBestMove(json);
+		//infoLogger.info("string syzygy best " + bestMove);
+		return bestMove;
 	}
 
 	private String getHttp(String url) {
@@ -91,10 +94,17 @@ public class SyzygyRestLookupTable implements LookupTable {
 		SyzygyRestLookupTable lookupTable = new SyzygyRestLookupTable();
 		
 		Board board = new Board();
-		board.setFenString("4k1r1/8/8/8/8/8/3K4/2Q5 b - - 0 1");
+		//board.setFenString("4k1r1/8/8/8/8/8/3K4/2Q5 b - - 0 1");
+		board.setFenString("8/5r2/6k1/6Q1/6K1/8/8/8 b - - 20 11");
+		
 		System.out.println(board.toFenString());
 		
-		String bestMove = lookupTable.bestMove(board);
+		String bestMove = lookupTable.bestMove(board, new InfoLogger() {
+			@Override
+			public void info(String message) {
+				System.out.println(message);
+			}
+		});
 		System.out.println(bestMove);
 	}
 }
