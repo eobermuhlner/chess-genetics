@@ -20,9 +20,7 @@ public class Board {
 	private int fiftyMoveNumber = 0;
 	
 	private Analysis analysis;
-
-	private Optional<Position> optionalKing;
-
+	
 	public Board() {
 		this(new InfoLogger() {
 			public void info(String message) {
@@ -33,7 +31,6 @@ public class Board {
 	
 	public Board(InfoLogger infoLogger) {
 		this.infoLogger = infoLogger;
-		setStartPosition();
 	}
 	
 	public void clear() {
@@ -295,7 +292,7 @@ public class Board {
 	private List<Move> getAllMovesUnderCheck() {
 		List<Move> moves = new ArrayList<>();
 		
-		optionalKing = positions.stream()
+		Optional<Position> optionalKing = positions.stream()
 			.filter(position -> position.getSide() == sideToMove && position.getPiece() == Piece.King)
 			.findAny();
 
@@ -461,11 +458,13 @@ public class Board {
 	}
 
 	public Board clone() {
-		Board board = new Board();
-		
+		Board board = new Board(infoLogger);
+
 		board.positions.addAll(positions);
 		board.sideToMove = sideToMove;
-		
+		board.moveNumber = moveNumber;
+		board.fiftyMoveNumber = fiftyMoveNumber;
+				
 		return board;
 	}
 	

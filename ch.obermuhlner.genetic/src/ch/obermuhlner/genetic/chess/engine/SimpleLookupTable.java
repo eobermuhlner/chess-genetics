@@ -45,6 +45,7 @@ public class SimpleLookupTable implements LookupTable {
 		String[] moves = line.split("\\s+");
 		
 		Board board = new Board();
+		board.setStartPosition();
 		for (int i = 0; i < moves.length; i++) {
 			String move = moves[i];
 
@@ -74,7 +75,7 @@ public class SimpleLookupTable implements LookupTable {
 	}
 
 	@Override
-	public String bestMove(Board board) {
+	public String bestMove(Board board, InfoLogger infoLogger) {
 		String fen = board.toFenString();
 		
 		Set<EntityValueTuple<String>> recommendedMoves = fenToRecommendedMoves.get(fen);
@@ -89,6 +90,7 @@ public class SimpleLookupTable implements LookupTable {
 			// ignored
 		}
 
+		infoLogger.info("string opening recommends " + recommendedMoves);
 		return RandomUtil.pickRandom(random, recommendedMoves);
 	}
 }
