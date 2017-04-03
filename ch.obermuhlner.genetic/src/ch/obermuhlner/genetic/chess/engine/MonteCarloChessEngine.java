@@ -89,6 +89,16 @@ public class MonteCarloChessEngine implements ChessEngine {
 	public String getFen() {
 		return board.toFenString();
 	}
+	
+	@Override
+	public String getPosition(int x, int y) {
+		Position position = board.getPosition(x, y);
+		if (position == null) {
+			return " ";
+		}
+		
+		return String.valueOf(position.getCharacter());
+	}
 
 	@Override
 	public boolean isWhiteToMove() {
@@ -132,7 +142,7 @@ public class MonteCarloChessEngine implements ChessEngine {
 
 		@Override
 		public void run() {
-			String lookupMove = lookupTable.bestMove(board);
+			String lookupMove = lookupTable.bestMove(board, infoLogger);
 			if (lookupMove != null) {
 				result = lookupMove;
 				

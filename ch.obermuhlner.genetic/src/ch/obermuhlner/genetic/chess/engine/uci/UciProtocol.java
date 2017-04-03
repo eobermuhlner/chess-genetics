@@ -124,7 +124,23 @@ public class UciProtocol implements InfoLogger {
 	}
 
 	private void executeDiagram(String[] args) {
-		info("string FEN " + chessEngine.getFen());
+		for (int y = 7; y >= 0; y--) {
+			StringBuilder line = new StringBuilder();
+			for (int x = 0; x < 8; x++) {
+				line.append("| ");
+				line.append(chessEngine.getPosition(x, y));
+				line.append(" ");
+			}
+			line.append("| ");
+			line.append(y + 1);
+			
+			println("+---+---+---+---+---+---+---+---+");
+			println(line.toString());
+		}
+		println("+---+---+---+---+---+---+---+---+");
+		println("  a   b   c   d   e   f   g   h  ");
+		println("");
+		println("Fen: " + chessEngine.getFen());
 	}
 
 	private void executeGo(String[] args) {

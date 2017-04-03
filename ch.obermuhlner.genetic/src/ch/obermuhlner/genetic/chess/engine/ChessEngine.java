@@ -12,6 +12,8 @@ public interface ChessEngine {
 	
 	String getFen();
 	
+	String getPosition(int x, int y);
+	
 	boolean isWhiteToMove();
 	
 	double evaluate();
